@@ -41,6 +41,7 @@ h2 { font-size: 18px; margin: var(--s6) 0 var(--s3); }
 .calls .num { flex: none; font-size: 22px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
 .calls .num::before { content: "☎ "; font-size: 16px; }
 .tip, .note { font-size: 14px; color: var(--muted); margin: var(--s4) 0 0; }
+.note a { color: var(--accent); }
 .bad { padding: var(--s4); border: 1px solid var(--warn); border-radius: 12px; color: var(--warn); }
 [dir="rtl"] .calls a { flex-direction: row-reverse; }
 </style>
@@ -145,7 +146,7 @@ h2 { font-size: 18px; margin: var(--s6) 0 var(--s3); }
       return el('li', null, [el('a', { href: 'tel:' + n }, [el('span', { text: t['h' + n] }), el('span', { class: 'num', text: n })])]);
     })));
     app.appendChild(el('p', { class: 'tip', text: t.tip }));
-    app.appendChild(el('p', { class: 'note', text: t.note }));
+    app.appendChild(el('p', { class: 'note' }, [document.createTextNode(t.note + ' '), el('a', { href: '/privacy#' + (lang === 'th' ? 'th' : 'en'), text: lang === 'th' ? 'นโยบายความเป็นส่วนตัว' : 'Privacy' })]));
   }
   render();
   window.addEventListener('hashchange', function () { data = decode(location.hash); render(); });

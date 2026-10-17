@@ -258,6 +258,7 @@ input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; ov
 .foot b { color: var(--accent); }
 .foot-meta { display: grid; gap: var(--s1); justify-items: end; text-align: right; }
 .powered { font-size: var(--t-xs); }
+.foot-meta a { color: var(--accent); font-weight: 700; text-underline-offset: 3px; }
 .powered a { color: var(--accent); font-weight: 700; text-decoration-thickness: 1px; text-underline-offset: 3px; }
 @media (max-width: 860px) { .foot-meta { justify-items: start; text-align: left; } }
 .printsheet { display: none; }
@@ -4130,6 +4131,7 @@ var qrcode = function() {
           h('p', null, 'หน้านี้ใช้ Google AdSense ซึ่งอาจใช้คุกกี้ โฆษณาหนึ่งชิ้นจะแสดงท้ายฟอร์มหลังดาวน์โหลดหรือพิมพ์ครั้งแรก')),
         h('p', { className: 'foot-meta' },
           h('span', null, 'ขนาดพิมพ์ A4 / A5 แนวนอน · 300 dpi'),
+          h('a', { href: '/privacy' }, 'นโยบายความเป็นส่วนตัว · Privacy'),
           siteName() ? h('span', { className: 'powered latin' }, 'Powered by ',
             SITE.url ? h('a', { href: SITE.url, rel: 'noopener' }, siteName()) : h('b', null, siteName())) : null)));
   }

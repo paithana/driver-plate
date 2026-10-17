@@ -11,3 +11,6 @@ CLAUDE.local.md
 vendor/ort/
 vendor/modnet/
 vendor/tesseract/
+
+# Pages build output
+dist/

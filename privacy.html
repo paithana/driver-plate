@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2d4a2b">
+<title>นโยบายความเป็นส่วนตัว · Privacy policy</title>
+<link rel="icon" href="/icons/icon-192.png">
+<style>
+:root { --bg: #faf9f6; --surface: #fff; --fg: #1f2a1e; --muted: #5c6553; --accent: #2d4a2b; --accent-fg: #faf9f6; --line: #d3d7c6; }
+@media (prefers-color-scheme: dark) { :root { --bg: #151d14; --surface: #1d281c; --fg: #ecefe5; --muted: #aab3a0; --accent: #a4ac86; --accent-fg: #151d14; --line: #35422f; color-scheme: dark; } }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--fg); font: 400 17px/1.7 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Thai", "Noto Sans", sans-serif; }
+main { max-width: 720px; margin: 0 auto; padding: max(24px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 48px max(16px, env(safe-area-inset-left)); }
+nav { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+nav a { color: var(--accent); font-weight: 700; text-underline-offset: 3px; }
+.langs { display: flex; gap: 8px; }
+.langs button { font: inherit; font-size: 14px; min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
+.langs button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 700; }
+h1 { font-size: 30px; line-height: 1.25; margin: 0 0 4px; color: var(--accent); }
+h2 { font-size: 20px; margin: 32px 0 8px; color: var(--accent); }
+.date { color: var(--muted); margin: 0 0 24px; font-size: 15px; }
+p, li { margin: 0 0 10px; }
+ul { padding-left: 1.2em; }
+a { color: var(--accent); }
+.box { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+<!--email_off-->
+  <nav>
+    <a href="/">← ป้ายข้อมูลผู้ขับรถ</a>
+    <div class="langs" role="group" aria-label="Language">
+      <button type="button" data-l="th" aria-pressed="true">ไทย</button>
+      <button type="button" data-l="en" aria-pressed="false" lang="en">English</button>
+    </div>
+  </nav>
+
+  <article lang="th" data-lang="th">
+    <h1>นโยบายความเป็นส่วนตัว</h1>
+    <p class="date">มีผลตั้งแต่ 17 ตุลาคม 2569</p>
+    <div class="box">
+      <p><b>สรุปสั้น ๆ:</b> ข้อมูลที่คุณกรอก รูปถ่าย และรูปใบอนุญาตขับรถ ประมวลผลในเครื่องของคุณเท่านั้น เราไม่มีบัญชีผู้ใช้และไม่เก็บข้อมูลเหล่านี้บนเซิร์ฟเวอร์ของเรา หน้าทำป้ายแสดงโฆษณาจาก Google ซึ่งอาจใช้คุกกี้</p>
+    </div>
+
+    <h2>ผู้ควบคุมข้อมูล</h2>
+    <p>ThinkWeb (thinkweb.me) ผู้ให้บริการ driver.thinkweb.me ติดต่อ: <a href="mailto:privacy@thinkweb.me">privacy@thinkweb.me</a></p>
+
+    <h2>ข้อมูลที่อยู่ในเครื่องของคุณเท่านั้น</h2>
+    <ul>
+      <li><b>ข้อมูลบนป้าย</b> (ชื่อ เลขใบอนุญาต ทะเบียนรถ จังหวัด รูปถ่าย ฟอนต์ที่เลือก) ถูกเก็บเป็นร่างในเบราว์เซอร์ของคุณ (localStorage) เพื่อให้กลับมาแก้ไขได้ กด “ล้างข้อมูล” เพื่อลบ</li>
+      <li><b>รูปถ่ายและการลบพื้นหลัง</b> ประมวลผลด้วยโมเดลที่ทำงานในเบราว์เซอร์ รูปไม่ถูกส่งออกจากเครื่อง</li>
+      <li><b>การสแกนใบอนุญาตขับรถ</b> อ่านข้อความด้วยโปรแกรม OCR ที่ทำงานในเบราว์เซอร์ รูปใบอนุญาตไม่ถูกส่งออกและไม่ถูกเก็บ ระบบไม่นำเลขประจำตัวประชาชนมาใช้</li>
+      <li><b>ไฟล์ JPEG</b> ที่บันทึกหรือพิมพ์ สร้างขึ้นในเครื่องของคุณ</li>
+      <li><b>การใช้งานออฟไลน์</b> ไฟล์ของแอปและโมเดลถูกเก็บในเครื่อง (Cache Storage) ลบได้จากการตั้งค่าเบราว์เซอร์</li>
+    </ul>
+
+    <h2>QR สำหรับนักท่องเที่ยว</h2>
+    <p>ถ้าเปิดใช้ QR บนป้ายจะมีชื่อภาษาอังกฤษ เลขใบอนุญาต ทะเบียนรถ และจังหวัดอยู่ในลิงก์ ทุกคนที่สแกน QR บนป้ายจะเห็นข้อมูลเหล่านี้ ข้อมูลอยู่หลังเครื่องหมาย # ของลิงก์ ซึ่งเบราว์เซอร์ไม่ส่งมายังเซิร์ฟเวอร์ ปิด QR ได้ในหัวข้อ “สายด่วนท้ายป้าย”</p>
+
+    <h2>ข้อมูลที่บุคคลภายนอกได้รับ</h2>
+    <ul>
+      <li><b>Google AdSense</b> สคริปต์โฆษณาโหลดบนหน้าทำป้าย (ไม่ใช่หน้า QR) Google และพันธมิตรอาจใช้คุกกี้หรือตัวระบุอื่นเพื่อแสดงและวัดผลโฆษณา รวมถึงโฆษณาที่ปรับตามความสนใจ อ่าน<a href="https://policies.google.com/technologies/partner-sites?hl=th" rel="noopener">วิธีที่ Google ใช้ข้อมูล</a> และปิดโฆษณาตามความสนใจได้ที่ <a href="https://adssettings.google.com/" rel="noopener">การตั้งค่าโฆษณาของ Google</a></li>
+      <li><b>Cloudflare</b> ให้บริการโฮสต์และส่งเนื้อหาเว็บไซต์ ได้รับข้อมูลทางเทคนิคตามปกติของการเข้าเว็บ เช่น ที่อยู่ IP และชนิดเบราว์เซอร์ เพื่อให้บริการและป้องกันการโจมตี</li>
+    </ul>
+    <p>เราไม่ใช้เครื่องมือวิเคราะห์ผู้เข้าชม ไม่ขายข้อมูล และไม่ส่งข้อมูลบนป้ายให้ผู้อื่น</p>
+
+    <h2>สิทธิของคุณ</h2>
+    <p>ตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 คุณมีสิทธิขอเข้าถึง แก้ไข ลบ หรือคัดค้านการประมวลผลข้อมูลส่วนบุคคล เนื่องจากข้อมูลบนป้ายอยู่ในเครื่องของคุณ คุณจึงลบได้เองทันที สำหรับเรื่องอื่นติดต่อ <a href="mailto:privacy@thinkweb.me">privacy@thinkweb.me</a> และร้องเรียนต่อสำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคลได้</p>
+
+    <h2>การเปลี่ยนแปลง</h2>
+    <p>หากนโยบายนี้เปลี่ยน เราจะปรับวันที่มีผลด้านบน</p>
+  </article>
+
+  <article lang="en" data-lang="en" hidden>
+    <h1>Privacy policy</h1>
+    <p class="date">Effective 17 October 2026</p>
+    <div class="box">
+      <p><b>In short:</b> what you type, your photo and any driving-licence image are processed on your own device only. There are no accounts, and we don't store this data on our servers. The card-maker page shows ads from Google, which may use cookies.</p>
+    </div>
+
+    <h2>Data controller</h2>
+    <p>ThinkWeb (thinkweb.me), operator of driver.thinkweb.me. Contact: <a href="mailto:privacy@thinkweb.me">privacy@thinkweb.me</a></p>
+
+    <h2>Data that stays on your device</h2>
+    <ul>
+      <li><b>Card details</b> (names, licence number, plate, province, photo, chosen font) are kept as a draft in your browser (localStorage) so you can come back to it. “ล้างข้อมูล” (clear) deletes it.</li>
+      <li><b>Photos and background removal</b> run on an in-browser model; the photo never leaves the device.</li>
+      <li><b>Licence scanning</b> uses in-browser OCR; the licence image is not uploaded or kept, and the citizen ID number is never used.</li>
+      <li><b>JPEG files</b> you save or print are created on your device.</li>
+      <li><b>Offline use</b> stores the app and model files on your device (Cache Storage); you can remove them in your browser settings.</li>
+    </ul>
+
+    <h2>Tourist QR code</h2>
+    <p>If the QR code is enabled, it links to a page that shows the English name, licence number, plate and province. Anyone who scans the card can see them. The details sit after the # in the link, which browsers do not send to our server. You can turn the QR off under “สายด่วนท้ายป้าย” (hotlines).</p>
+
+    <h2>Third parties</h2>
+    <ul>
+      <li><b>Google AdSense</b> loads on the card-maker page (not the QR page). Google and its partners may use cookies or other identifiers to serve and measure ads, including personalised ads. See <a href="https://policies.google.com/technologies/partner-sites" rel="noopener">how Google uses information from sites that use its services</a>, and opt out of personalised ads in <a href="https://adssettings.google.com/" rel="noopener">Google Ads Settings</a> or at <a href="https://www.aboutads.info/" rel="noopener">aboutads.info</a>.</li>
+      <li><b>Cloudflare</b> hosts and delivers the site and receives the usual technical data of a web request, such as IP address and browser type, to provide the service and protect against attacks.</li>
+    </ul>
+    <p>We use no visitor analytics, sell no data, and share no card details with anyone.</p>
+
+    <h2>Your rights</h2>
+    <p>Under Thailand’s Personal Data Protection Act B.E. 2562 (2019) you may request access to, correction or deletion of, or object to the processing of your personal data. Card details live on your device, so you can delete them yourself at any time. For anything else, contact <a href="mailto:privacy@thinkweb.me">privacy@thinkweb.me</a>; you may also complain to Thailand’s Personal Data Protection Committee.</p>
+
+    <h2>Changes</h2>
+    <p>If this policy changes, we will update the effective date above.</p>
+  </article>
+<!--/email_off-->
+</main>
+<script data-cfasync="false">
+(function () {
+  var btns = document.querySelectorAll('.langs button');
+  function show(l) {
+    document.documentElement.lang = l;
+    document.querySelectorAll('article[data-lang]').forEach(function (a) { a.hidden = a.getAttribute('data-lang') !== l; });
+    btns.forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-l') === l)); });
+    document.title = l === 'th' ? 'นโยบายความเป็นส่วนตัว · ป้ายข้อมูลผู้ขับรถ' : 'Privacy policy · Driver card maker';
+  }
+  btns.forEach(function (b) { b.addEventListener('click', function () { show(b.getAttribute('data-l')); history.replaceState(null, '', '#' + b.getAttribute('data-l')); }); });
+  var want = location.hash === '#en' ? 'en' : location.hash === '#th' ? 'th' : (/^th/i.test(navigator.language || '') ? 'th' : 'en');
+  show(want);
+})();
+</script>
+</body>
+</html>
