@@ -123,7 +123,18 @@ h1 { font: 700 var(--t-h1)/1.12 var(--font-display); margin: 0; text-wrap: balan
 .layout { display: grid; grid-template-columns: minmax(0, 440px) minmax(0, 1fr); gap: var(--s6) var(--s7); align-items: start; }
 .form { display: grid; gap: var(--s5); grid-column: 1; grid-row: 1; min-width: 0; counter-reset: step; }
 .right { display: grid; gap: var(--s4); min-width: 0; grid-column: 2; grid-row: 1; }
-@media (min-width: 861px) { .right { position: sticky; top: var(--s5); } }
+:root { --bar-h: 0px; }
+:root.bar-on { --bar-h: 52px; }
+.stickybar { position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0; z-index: 20; height: 52px;
+  background: var(--bg); box-shadow: 0 4px 14px -10px rgba(31,42,30,.35);
+  border-bottom: 1px solid var(--line); transform: translateY(-110%); transition: transform .2s ease; }
+.stickybar.on { transform: none; }
+.stickybar-in { max-width: 1200px; height: 100%; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: var(--s4);
+  padding-left: max(var(--s5), env(safe-area-inset-left, 0px)); padding-right: max(var(--s5), env(safe-area-inset-right, 0px)); }
+.sb-title { font: 700 var(--t-xl)/1.2 var(--font-display); color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.sb-plate { flex: none; padding: 2px var(--s3); border: 2px solid #111; border-radius: 6px; background: #fbfbf7; color: #111;
+  font: 700 var(--t-sm)/1.4 var(--font-body); font-variant-numeric: tabular-nums; white-space: nowrap; }
+@media (min-width: 861px) { .right { position: sticky; top: calc(var(--bar-h) + var(--s5)); transition: top .2s ease; } }
 
 /* Sections */
 fieldset { border: 1px solid var(--line); border-radius: var(--r-md); margin: 0; min-width: 0; background: var(--surface);
@@ -229,7 +240,11 @@ input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; ov
   .plate-prov { font-size: var(--t-sm); }
   .layout { display: block; }
   .right { display: contents; }
-  .card-wrap { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; display: grid; justify-items: center; gap: 6px;
+  :root.bar-on { --bar-h: 44px; }
+  .stickybar { height: 44px; }
+  .stickybar-in { padding-left: max(var(--s4), env(safe-area-inset-left, 0px)); padding-right: max(var(--s4), env(safe-area-inset-right, 0px)); }
+  .sb-title { font-size: var(--t-lg); }
+  .card-wrap { position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--bar-h)); z-index: 5; display: grid; justify-items: center; gap: 6px;
     padding: var(--s2) var(--s3); border-radius: 0 0 var(--r-lg) var(--r-lg); box-shadow: var(--dock-shadow); }
   .card-view { display: grid; justify-items: center; gap: 6px; width: 100%; cursor: zoom-in; }
   .card-wrap.expanded .card-view { cursor: zoom-out; }
@@ -250,12 +265,12 @@ input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; ov
 }
 @media (max-width: 380px) { .row { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: no-preference) { .btn { transition: background-color .15s, color .15s; } }
-@media (prefers-reduced-motion: reduce) { fieldset, input, textarea, select { transition: none; } }
+@media (prefers-reduced-motion: reduce) { fieldset, input, textarea, select, .stickybar, .right { transition: none; } }
 @media print {
   @page { size: A4 landscape; margin: 8mm; }
   body { background: #fff; }
   body::before { display: none; }
-  .page { display: none; }
+  .page, .stickybar { display: none; }
   .printsheet { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
   .printsheet img { width: 100%; height: auto; }
 }
@@ -1025,7 +1040,18 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     var _bgb = useState(false); var bgBusy = _bgb[0], setBgBusy = _bgb[1];
     var _ad = useState(false); var showAd = _ad[0], setShowAd = _ad[1];
     function afterOutput() { if (!showAd && adsDue()) { markAdsSeen(); setShowAd(true); } }
-    var canvasRef = useRef(null), fileRef = useRef(null), fontFileRef = useRef(null), resultUrl = useRef(null);
+    var canvasRef = useRef(null), fileRef = useRef(null), fontFileRef = useRef(null), resultUrl = useRef(null), mastRef = useRef(null);
+    var _pin = useState(false); var pinned = _pin[0], setPinned = _pin[1];
+
+    /* Once the masthead scrolls away, a slim title bar pins to the top and the preview card docks under it. */
+    useEffect(function () {
+      var el = mastRef.current;
+      if (!el || !window.IntersectionObserver) return;
+      var io = new IntersectionObserver(function (es) { setPinned(!es[0].isIntersecting); }, { threshold: 0 });
+      io.observe(el);
+      return function () { io.disconnect(); };
+    }, []);
+    useEffect(function () { document.documentElement.classList.toggle('bar-on', pinned); }, [pinned]);
     var inViewer = !!(window.claude && typeof window.claude.use === 'function');
 
     function set(key, value) { setSt(function (p) { var n = Object.assign({}, p); n[key] = value; return n; }); }
@@ -1206,7 +1232,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
                  : st.family === 'local' ? (st.localFont || 'ยังไม่ได้พิมพ์ชื่อ') : FAMILIES[st.family].label.split(' — ')[0];
 
     return h(React.Fragment, null,
-      h('header', { className: 'masthead' },
+      h('div', { className: 'stickybar' + (pinned ? ' on' : ''), 'aria-hidden': pinned ? null : 'true' },
+        h('div', { className: 'stickybar-in' },
+          h('span', { className: 'sb-title' }, 'ป้ายข้อมูลผู้ขับรถ'),
+          h('span', { className: 'sb-plate' }, (st.regNo.trim() || '— —') + ' · ' + (st.province.trim() || 'จังหวัด')))),
+      h('header', { className: 'masthead', ref: mastRef },
         h('div', null,
           h('p', { className: 'eyebrow' }, h('span', { className: 'latin' }, 'Driver information card'), h('span', { className: 'dot', 'aria-hidden': 'true' }), h('span', null, 'ทำป้ายข้อมูลผู้ขับรถ')),
           h('h1', null, 'ป้ายข้อมูลผู้ขับรถ'),
