@@ -205,6 +205,10 @@ input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; ov
   justify-content: space-between; gap: var(--s2) var(--s5); font-size: var(--t-sm); line-height: 1.6; color: var(--muted); }
 .foot p { margin: 0; max-width: 64ch; }
 .foot b { color: var(--accent); }
+.foot-meta { display: grid; gap: var(--s1); justify-items: end; text-align: right; }
+.powered { font-size: var(--t-xs); }
+.powered a { color: var(--accent); font-weight: 700; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+@media (max-width: 860px) { .foot-meta { justify-items: start; text-align: left; } }
 .printsheet { display: none; }
 
 /* Phones: the card docks to the top while the form scrolls under it. */
@@ -561,6 +565,15 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
   var SAMPLE_PHOTO = '';
   var STORAGE_KEY = 'driver-card-maker-v3';
+  /* Footer credit. Empty name = the domain this page is served from (driver.thinkweb.me -> thinkweb.me); set url to make it a link. */
+  var SITE = { name: '', url: '' };
+  function siteName() {
+    if (SITE.name) return SITE.name;
+    var parts = (location.hostname || '').split('.').filter(Boolean);
+    if (parts.length < 2 || /^\d+$/.test(parts[parts.length - 1])) return '';
+    var n = parts.length > 2 && parts[parts.length - 1].length === 2 && parts[parts.length - 2].length <= 3 ? 3 : 2;
+    return parts.slice(-n).join('.');
+  }
   var CUSTOM_FAMILY = 'CustomCardFont';
 
   var FAMILIES = {
@@ -1233,7 +1246,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
               'ใส่กรอบเส้นบางรอบป้าย (สะดวกเวลาตัด)')))),
       h('footer', { className: 'foot' },
         h('p', null, h('b', null, 'ข้อมูลอยู่ในเครื่องคุณเท่านั้น'), ' — ชื่อ รูป และเลขทะเบียนไม่ถูกส่งขึ้นเซิร์ฟเวอร์ ร่างจะถูกเก็บไว้ในเบราว์เซอร์นี้ กด “ล้างข้อมูล” เพื่อลบ'),
-        h('p', null, 'ขนาดพิมพ์ A4 / A5 แนวนอน · 300 dpi')));
+        h('p', { className: 'foot-meta' },
+          h('span', null, 'ขนาดพิมพ์ A4 / A5 แนวนอน · 300 dpi'),
+          siteName() ? h('span', { className: 'powered latin' }, 'Powered by ',
+            SITE.url ? h('a', { href: SITE.url, rel: 'noopener' }, siteName()) : h('b', null, siteName())) : null)));
   }
 
   var rootEl = document.getElementById('root');
