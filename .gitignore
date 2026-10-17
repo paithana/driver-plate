@@ -10,3 +10,4 @@ CLAUDE.local.md
 # Background-removal binaries: run vendor/fetch.sh (pinned + sha256-checked)
 vendor/ort/
 vendor/modnet/
+vendor/tesseract/
