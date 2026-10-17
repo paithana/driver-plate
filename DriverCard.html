@@ -191,7 +191,10 @@ input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; ov
 .caption { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--s1) var(--s3); margin-top: var(--s3);
   font-size: var(--t-xs); color: var(--muted); }
 .only-phone { display: none; }
-.actions { display: flex; flex-wrap: wrap; gap: var(--s3); align-items: center; }
+.actions { display: flex; flex-wrap: wrap; gap: var(--s3); align-items: center; margin-top: var(--s4); padding-top: var(--s4); border-top: 1px solid var(--line); }
+.card-wrap .status { margin-top: var(--s3); }
+.card-wrap .status.empty { display: none; }
+.btn.quiet.confirm { border-color: var(--warn); color: var(--warn); }
 .status { margin: 0; min-height: 1.6em; font-size: var(--t-sm); color: var(--muted); }
 .status.ok { color: var(--ok); }
 .status.warn { color: var(--warn); }
@@ -223,16 +226,18 @@ input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; ov
   .layout { display: block; }
   .right { display: contents; }
   .card-wrap { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; display: grid; justify-items: center; gap: 6px;
-    padding: var(--s2) var(--s3) 6px; border-radius: 0 0 var(--r-lg) var(--r-lg); box-shadow: var(--dock-shadow); cursor: zoom-in; }
-  .card-wrap.expanded { cursor: zoom-out; }
+    padding: var(--s2) var(--s3); border-radius: 0 0 var(--r-lg) var(--r-lg); box-shadow: var(--dock-shadow); }
+  .card-view { display: grid; justify-items: center; gap: 6px; width: 100%; cursor: zoom-in; }
+  .card-wrap.expanded .card-view { cursor: zoom-out; }
   .card-wrap canvas { width: auto; max-height: 22vh; }
   .card-wrap.expanded canvas { max-height: 52vh; }
   .caption { width: 100%; margin-top: 0; }
   .only-phone { display: inline; }
   .only-desk { display: none; }
-  .actions { margin-top: var(--s4); }
-  .actions .btn { flex: 1 1 auto; padding: 0 var(--s4); }
-  .status { margin-top: var(--s2); }
+  .actions { width: 100%; flex-wrap: nowrap; gap: var(--s2); margin-top: var(--s2); padding-top: var(--s2); }
+  .actions .btn { flex: 1 1 0; min-width: 0; min-height: 40px; padding: 0 var(--s2); font-size: var(--t-sm); }
+  .actions .btn.primary { flex-grow: 1.4; }
+  .card-wrap .status { width: 100%; margin-top: var(--s1); font-size: var(--t-xs); line-height: 1.4; text-align: center; }
   .result { margin-top: var(--s3); }
   .form { margin-top: var(--s5); gap: var(--s4); }
   fieldset { padding: var(--s2) var(--s4) var(--s4); }
@@ -1006,6 +1011,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     }, [st, img, previewW, fontTick]);
 
     useEffect(function () {
+      if (msg.tone !== 'ok') return;
+      var t = setTimeout(function () { setMsg({ text: '', tone: '' }); }, 6000);
+      return function () { clearTimeout(t); };
+    }, [msg]);
+
+    useEffect(function () {
       if (!confirmReset) return;
       var t = setTimeout(function () { setConfirmReset(false); }, 4000);
       return function () { clearTimeout(t); };
@@ -1145,16 +1156,17 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
           h('span', { className: 'plate-prov' }, st.province.trim() || 'จังหวัด'))),
       h('div', { className: 'layout' },
         h('section', { className: 'right', 'aria-label': 'ตัวอย่างป้าย' },
-          h('div', { className: 'card-wrap' + (expanded ? ' expanded' : ''), onClick: function () { setExpanded(!expanded); } },
-            h('canvas', { ref: canvasRef, 'aria-label': 'ตัวอย่างป้ายข้อมูลผู้ขับรถ' }),
-            h('div', { className: 'caption' },
-              h('span', null, h('span', { className: 'only-desk' }, 'ตัวอย่าง — อัปเดตทันทีที่พิมพ์'), h('span', { className: 'only-phone' }, expanded ? 'แตะเพื่อย่อ' : 'แตะเพื่อขยาย')),
-              h('span', null, famLabel + ' · ' + (st.weight === 700 ? 'หนา' : 'ปกติ')))),
-          h('div', { className: 'actions' },
-            h('button', { type: 'button', className: 'btn primary', onClick: onSave, disabled: busy }, busy ? 'กำลังสร้าง…' : 'บันทึก JPEG'),
-            inViewer ? null : h('button', { type: 'button', className: 'btn', onClick: onPrint, disabled: busy }, 'พิมพ์'),
-            h('button', { type: 'button', className: 'btn quiet', onClick: onReset }, confirmReset ? 'กดอีกครั้งเพื่อยืนยันการล้าง' : 'ล้างข้อมูล')),
-          h('p', { className: 'status ' + msg.tone, role: 'status' }, msg.text),
+          h('div', { className: 'card-wrap' + (expanded ? ' expanded' : '') },
+            h('div', { className: 'card-view', onClick: function () { setExpanded(!expanded); } },
+              h('canvas', { ref: canvasRef, 'aria-label': 'ตัวอย่างป้ายข้อมูลผู้ขับรถ' }),
+              h('div', { className: 'caption' },
+                h('span', null, h('span', { className: 'only-desk' }, 'ตัวอย่าง — อัปเดตทันทีที่พิมพ์'), h('span', { className: 'only-phone' }, expanded ? 'แตะเพื่อย่อ' : 'แตะเพื่อขยาย')),
+                h('span', null, famLabel + ' · ' + (st.weight === 700 ? 'หนา' : 'ปกติ')))),
+            h('div', { className: 'actions' },
+              h('button', { type: 'button', className: 'btn primary', onClick: onSave, disabled: busy }, busy ? 'กำลังสร้าง…' : 'บันทึก JPEG'),
+              inViewer ? null : h('button', { type: 'button', className: 'btn', onClick: onPrint, disabled: busy }, 'พิมพ์'),
+              h('button', { type: 'button', className: 'btn quiet' + (confirmReset ? ' confirm' : ''), onClick: onReset }, confirmReset ? h(React.Fragment, null, h('span', { className: 'only-desk' }, 'กดอีกครั้งเพื่อล้าง'), h('span', { className: 'only-phone' }, 'ยืนยันล้าง')) : 'ล้างข้อมูล')),
+            h('p', { className: 'status ' + msg.tone + (msg.text ? '' : ' empty'), role: 'status' }, msg.text)),
           result ? h('figure', { className: 'result' },
             h('img', { src: result.url, alt: 'ไฟล์ JPEG ป้ายข้อมูลผู้ขับรถ' }),
             h('figcaption', null,
