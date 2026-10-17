@@ -180,9 +180,6 @@ input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; ov
 .btn[disabled] { opacity: 0.55; cursor: wait; }
 .check { display: flex; gap: var(--s3); align-items: center; min-height: 40px; font-size: var(--t-md); line-height: 1.45; }
 .check input { flex: none; width: 20px; height: 20px; margin: 0; accent-color: var(--accent); }
-.radios { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s5); }
-.radios label { display: flex; gap: var(--s2); align-items: center; min-height: 40px; font-size: var(--t-md); }
-.radios input { width: 19px; height: 19px; margin: 0; accent-color: var(--accent); }
 
 /* Preview */
 .card-wrap { border-radius: var(--r-lg); padding: var(--s4); box-shadow: var(--card-shadow); border: 1.5px solid transparent;
@@ -676,11 +673,36 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   }
   function fontStr(weight, px, fam) { return weight + ' ' + px + 'px ' + fam; }
   var NUM_FONT = function (px) { return '400 ' + px + 'px Anton, Impact, "Arial Narrow", sans-serif'; };
+  /* Only 400 and 700 faces are embedded; other weights stroke the nearest lighter face in the fill colour.
+     boldStroke(fam) finds the stroke (in em) that gives the 400 face the same ink as the real 700 face, so 400→700 is even. */
+  var WEIGHT = { min: 400, max: 900, step: 50 };
+  function clampWeight(w) { w = Math.round((+w || 400) / WEIGHT.step) * WEIGHT.step; return Math.min(WEIGHT.max, Math.max(WEIGHT.min, w)); }
+  function weightFace(w) { return w >= 700 ? 700 : 400; }
+  var strokeCache = {};
+  function boldStroke(fam) {
+    if (strokeCache[fam] != null) return strokeCache[fam];
+    var c = document.createElement('canvas'); c.width = 900; c.height = 140;
+    var x = c.getContext('2d', { willReadFrequently: true }), px = 80, text = 'นาย สมชาย ใจดี Mr.Somchai 0123';
+    function ink(face, stroke) {
+      x.clearRect(0, 0, c.width, c.height); x.font = fontStr(face, px, fam); x.fillStyle = x.strokeStyle = '#000';
+      x.fillText(text, 10, 100);
+      if (stroke) { x.lineWidth = stroke * px; x.lineJoin = 'round'; x.strokeText(text, 10, 100); }
+      var d = x.getImageData(0, 0, c.width, c.height).data, n = 0;
+      for (var i = 3; i < d.length; i += 4) n += d[i];
+      return n;
+    }
+    var target = ink(700, 0), lo = 0, hi = 0.08;
+    for (var k = 0; k < 14; k++) { var mid = (lo + hi) / 2; if (ink(400, mid) < target) lo = mid; else hi = mid; }
+    return (strokeCache[fam] = (lo + hi) / 2);
+  }
+  function weightStroke(w, fam) { return (w - weightFace(w)) / 300 * boldStroke(fam); }
+  function weightName(w) { return w < 500 ? 'ปกติ' : w < 650 ? 'กลาง' : w < 750 ? 'หนา' : w < 850 ? 'หนามาก' : 'หนาพิเศษ'; }
+  var embolden = 0;
   var UI_FONT = function (px) { return '400 ' + px + 'px Sarabun' + FALLBACK; };
 
   var fontCache = {};
   function loadFonts(st) {
-    var fam = familyCSS(st), key = fam + '|' + st.weight;
+    var fam = familyCSS(st), key = fam;
     if (fontCache[key]) return fontCache[key];
     var f = document.fonts;
     if (!f || !f.load) { fontCache[key] = Promise.resolve(); return fontCache[key]; }
@@ -730,7 +752,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     var cx = opts.align === 'center' ? x - total / 2 : x;
     runs.forEach(function (r) {
       ctx.font = r.mk(r.size);
-      ctx.save(); ctx.translate(cx, y); ctx.scale(r.sx, 1); ctx.fillText(r.text, 0, 0); ctx.restore();
+      ctx.save(); ctx.translate(cx, y); ctx.scale(r.sx, 1); ctx.fillText(r.text, 0, 0);
+      if (embolden > 0 && r.mk !== NUM_FONT) {
+        ctx.lineWidth = embolden * r.size; ctx.lineJoin = 'round'; ctx.strokeStyle = ctx.fillStyle; ctx.strokeText(r.text, 0, 0);
+      }
+      ctx.restore();
       cx += r.w;
     });
   }
@@ -778,7 +804,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; ctx.fillStyle = '#000000';
     if (st.frame) { ctx.strokeStyle = '#000000'; ctx.lineWidth = 1.2; ctx.strokeRect(D.frame.x, D.frame.y, D.frame.w, D.frame.h); }
 
-    var fam = familyCSS(st), wgt = st.weight === 700 ? 700 : 400;
+    var weight = clampWeight(st.weight), fam = familyCSS(st), wgt = weightFace(weight);
+    embolden = weightStroke(weight, fam);
     var k = familyScale(ctx, fam) * (st.textScale || 1);
     var TF = function (px) { return fontStr(wgt, px, fam); };
     var sz = function (n) { return D.sizes[n] * k; };
@@ -872,7 +899,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     var face = new FontFace(CUSTOM_FAMILY, b64ToBuf(cf.data));
     return face.load().then(function (f) {
       document.fonts.forEach && document.fonts.forEach(function (x) { if (x.family === CUSTOM_FAMILY) document.fonts.delete(x); });
-      document.fonts.add(f); customLoaded = cf.data; fontCache = {}; return true;
+      document.fonts.add(f); customLoaded = cf.data; fontCache = {}; strokeCache = {}; return true;
     });
   }
 
@@ -886,6 +913,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       if (!Array.isArray(out.hotlines)) out.hotlines = DEFAULTS.hotlines.slice();
       while (out.hotlines.length < 3) out.hotlines.push('');
       if (!FAMILIES[out.family]) out.family = DEFAULTS.family;
+      out.weight = clampWeight(out.weight);
       return out;
     } catch (e) { return null; }
   }
@@ -1193,7 +1221,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
               h('canvas', { ref: canvasRef, 'aria-label': 'ตัวอย่างป้ายข้อมูลผู้ขับรถ' }),
               h('div', { className: 'caption' },
                 h('span', null, h('span', { className: 'only-desk' }, 'ตัวอย่าง — อัปเดตทันทีที่พิมพ์'), h('span', { className: 'only-phone' }, expanded ? 'แตะเพื่อย่อ' : 'แตะเพื่อขยาย')),
-                h('span', null, famLabel + ' · ' + (st.weight === 700 ? 'หนา' : 'ปกติ')))),
+                h('span', null, famLabel + ' · ' + weightName(st.weight) + ' ' + st.weight))),
             h('div', { className: 'actions' },
               h('button', { type: 'button', className: 'btn primary', onClick: onSave, disabled: busy }, busy ? 'กำลังสร้าง…' : 'บันทึก JPEG'),
               inViewer ? null : h('button', { type: 'button', className: 'btn', onClick: onPrint, disabled: busy }, 'พิมพ์'),
@@ -1256,12 +1284,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
               h('input', { id: 'fontFile', ref: fontFileRef, type: 'file', accept: '.ttf,.otf,.woff,.woff2,font/ttf,font/otf', onChange: onPickFont }),
               h('button', { type: 'button', className: 'btn small', onClick: function () { fontFileRef.current && fontFileRef.current.click(); } }, st.customFont ? 'เปลี่ยนไฟล์ฟอนต์' : 'เลือกไฟล์ฟอนต์'),
               h('span', { className: 'hint' }, st.customFont ? 'ใช้อยู่: ' + st.customFont.name : 'รองรับ .ttf .otf .woff .woff2')) : null,
-            h('div', { className: 'field' },
-              h('span', { className: 'lab' }, 'น้ำหนักตัวอักษร', h('span', { className: 'en' }, 'Weight')),
-              h('div', { className: 'radios' },
-                h('label', null, h('input', { type: 'radio', name: 'weight', id: 'w400', checked: st.weight !== 700, onChange: function () { set('weight', 400); } }), 'ปกติ (400)'),
-                h('label', null, h('input', { type: 'radio', name: 'weight', id: 'w700', checked: st.weight === 700, onChange: function () { set('weight', 700); } }), 'หนา (700)'))),
-            h('div', { className: 'sliders two' },
+            h('div', { className: 'sliders' },
+              h(Slider, { id: 'weight', label: 'ความหนา', text: st.weight + ' · ' + weightName(st.weight), min: WEIGHT.min, max: WEIGHT.max, step: WEIGHT.step, value: st.weight, onChange: function (v) { set('weight', clampWeight(v)); } }),
               h(Slider, { id: 'textScale', label: 'ขนาดตัวอักษร', text: Math.round(st.textScale * 100) + '%', min: 0.85, max: 1.2, step: 0.01, value: st.textScale, onChange: function (v) { set('textScale', v); } }),
               h(Slider, { id: 'lineGap', label: 'ระยะห่างบรรทัด', text: Math.round(st.lineGap * 100) + '%', min: 0.85, max: 1.15, step: 0.01, value: st.lineGap, onChange: function (v) { set('lineGap', v); } })),
             h('label', { className: 'check', htmlFor: 'boldDigits' },
