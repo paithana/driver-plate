@@ -14,6 +14,7 @@ Deploy the DriverCard page. Stop and report at the first failing step.
    - `vendor/fetch.sh` (a no-op when the files are already present and checksums match)
    - `sudo install -d -m 755 /var/www/driver/vendor/ort /var/www/driver/vendor/modnet`
    - `sudo install -m 644 vendor/ort/* /var/www/driver/vendor/ort/ && sudo install -m 644 vendor/modnet/* /var/www/driver/vendor/modnet/ && sudo install -m 644 vendor/NOTICE.md /var/www/driver/vendor/`
+   - `sudo install -m 644 ads.txt /var/www/driver/ads.txt`
    - `sudo install -m 644 DriverCard.html /var/www/driver/index.html`
 3. Verify: `curl -s --compressed https://driver.thinkweb.me/ -o <scratch>/pub.html` and `cmp` it against the local file. If it differs, show the first differing bytes — a `type="…-text/javascript"` rewrite means Rocket Loader caught a script without `data-cfasync="false"`.
    Also `curl -s -o /dev/null -w '%{http_code} %{content_type}'` each `/vendor/ort/*` and `/vendor/modnet/model_quantized.onnx` URL: expect 200 with `application/javascript`, `application/wasm` or `application/octet-stream`.

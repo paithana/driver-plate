@@ -207,6 +207,11 @@ input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; ov
 .foot { margin-top: var(--s7); padding-top: var(--s5); border-top: 1px solid var(--line); display: flex; flex-wrap: wrap;
   justify-content: space-between; gap: var(--s2) var(--s5); font-size: var(--t-sm); line-height: 1.6; color: var(--muted); }
 .foot p { margin: 0; max-width: 64ch; }
+.foot-notes { display: grid; gap: var(--s2); }
+.ad-slot { margin-top: var(--s7); padding: var(--s3) var(--s4) var(--s4); border: 1px dashed var(--line); border-radius: var(--r-md); display: grid; gap: var(--s2); }
+.ad-label { font-size: var(--t-xs); color: var(--muted); }
+.ad-slot:has(ins[data-ad-status="unfilled"]) { display: none; }
+.ad-slot + .foot { margin-top: var(--s6); }
 .foot b { color: var(--accent); }
 .foot-meta { display: grid; gap: var(--s1); justify-items: end; text-align: right; }
 .powered { font-size: var(--t-xs); }
@@ -572,6 +577,37 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   var STORAGE_KEY = 'driver-card-maker-v3';
   /* Footer credit. Empty name = the domain this page is served from (driver.thinkweb.me -> thinkweb.me); set url to make it a link. */
   var SITE = { name: '', url: '' };
+
+  /* One AdSense unit, shown after the form only once a driver has downloaded or printed, and only the first time per browser.
+     AdSense is not loaded at all before that. slot = the display ad unit's data-ad-slot; empty disables ads. */
+  var ADS = { client: 'ca-pub-4611537326733417', slot: '', seenKey: 'driver-card-ads-seen' };
+  function adsDue() {
+    if (!ADS.slot || !/^https?:$/.test(location.protocol)) return false;
+    try { return !localStorage.getItem(ADS.seenKey); } catch (e) { return true; }
+  }
+  function markAdsSeen() { try { localStorage.setItem(ADS.seenKey, new Date().toISOString()); } catch (e) {} }
+  var adsenseLoaded = false;
+  function loadAdsense() {
+    if (adsenseLoaded) return;
+    adsenseLoaded = true;
+    var sc = document.createElement('script');
+    sc.async = true; sc.crossOrigin = 'anonymous';
+    sc.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + ADS.client;
+    document.head.appendChild(sc);
+  }
+  function AdUnit() {
+    var pushed = useRef(false);
+    useEffect(function () {
+      if (pushed.current) return;
+      pushed.current = true;
+      loadAdsense();
+      try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+    }, []);
+    return h('aside', { className: 'ad-slot', 'aria-label': 'โฆษณา' },
+      h('span', { className: 'ad-label' }, 'โฆษณา'),
+      h('ins', { className: 'adsbygoogle', style: { display: 'block' }, 'data-ad-client': ADS.client, 'data-ad-slot': ADS.slot,
+        'data-ad-format': 'auto', 'data-full-width-responsive': 'true' }));
+  }
   function siteName() {
     if (SITE.name) return SITE.name;
     var parts = (location.hostname || '').split('.').filter(Boolean);
@@ -967,6 +1003,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     var _ft = useState(0); var fontTick = _ft[0], setFontTick = _ft[1];
     var _bg = useState(null); var bgCut = _bg[0], setBgCut = _bg[1];       /* { canvas, original } after a removal */
     var _bgb = useState(false); var bgBusy = _bgb[0], setBgBusy = _bgb[1];
+    var _ad = useState(false); var showAd = _ad[0], setShowAd = _ad[1];
+    function afterOutput() { if (!showAd && adsDue()) { markAdsSeen(); setShowAd(true); } }
     var canvasRef = useRef(null), fileRef = useRef(null), fontFileRef = useRef(null), resultUrl = useRef(null);
     var inViewer = !!(window.claude && typeof window.claude.use === 'function');
 
@@ -1104,6 +1142,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             if (!dl) { setMsg({ text: 'สร้างรูปแล้ว กดค้างที่รูปผลลัพธ์เพื่อบันทึกลงเครื่อง', tone: 'ok' }); return; }
             return dl.save({ filename: name, data: out.blob }).then(function () {
               setMsg({ text: 'บันทึก ' + name + ' แล้ว', tone: 'ok' });
+              afterOutput();
             }).catch(function (err) {
               var code = err && err.code;
               if (code === 'declined') setMsg({ text: 'ยกเลิกการบันทึก — รูปยังอยู่ด้านล่าง กดบันทึกอีกครั้งได้', tone: 'warn' });
@@ -1114,6 +1153,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         var a = document.createElement('a');
         a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
         setMsg({ text: 'ดาวน์โหลด ' + name + ' แล้ว (ดูในโฟลเดอร์ Downloads)', tone: 'ok' });
+        afterOutput();
       }).catch(function () {
         setMsg({ text: 'สร้างไฟล์ไม่สำเร็จ ลองเลือกขนาดเล็กลง', tone: 'warn' });
       }).then(function () { setBusy(false); });
@@ -1127,7 +1167,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
         var sheet = document.getElementById('printsheet');
         sheet.innerHTML = '';
         var im = new Image();
-        im.onload = function () { window.print(); setMsg({ text: 'ส่งไปยังหน้าต่างพิมพ์แล้ว (A4 แนวนอน)', tone: 'ok' }); };
+        im.onload = function () { window.print(); setMsg({ text: 'ส่งไปยังหน้าต่างพิมพ์แล้ว (A4 แนวนอน)', tone: 'ok' }); afterOutput(); };
         im.src = url; sheet.appendChild(im);
       }).catch(function () { setMsg({ text: 'เตรียมพิมพ์ไม่สำเร็จ', tone: 'warn' }); })
         .then(function () { setBusy(false); });
@@ -1256,8 +1296,11 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             h('label', { className: 'check', htmlFor: 'frame' },
               h('input', { id: 'frame', type: 'checkbox', checked: !!st.frame, onChange: function (e) { set('frame', e.target.checked); } }),
               'ใส่กรอบเส้นบางรอบป้าย (สะดวกเวลาตัด)')))),
+      showAd ? h(AdUnit) : null,
       h('footer', { className: 'foot' },
-        h('p', null, h('b', null, 'ข้อมูลอยู่ในเครื่องคุณเท่านั้น'), ' — ชื่อ รูป และเลขทะเบียนไม่ถูกส่งขึ้นเซิร์ฟเวอร์ ร่างจะถูกเก็บไว้ในเบราว์เซอร์นี้ กด “ล้างข้อมูล” เพื่อลบ'),
+        h('div', { className: 'foot-notes' },
+          h('p', null, h('b', null, 'ข้อมูลอยู่ในเครื่องคุณ'), ' — ชื่อ รูป และเลขทะเบียนไม่ถูกส่งขึ้นเซิร์ฟเวอร์ของเรา ร่างจะถูกเก็บไว้ในเบราว์เซอร์นี้ กด “ล้างข้อมูล” เพื่อลบ'),
+          h('p', null, 'หลังดาวน์โหลดหรือพิมพ์ครั้งแรก หน้านี้อาจแสดงโฆษณาจาก Google หนึ่งชิ้นท้ายฟอร์ม ซึ่งอาจใช้คุกกี้')),
         h('p', { className: 'foot-meta' },
           h('span', null, 'ขนาดพิมพ์ A4 / A5 แนวนอน · 300 dpi'),
           siteName() ? h('span', { className: 'powered latin' }, 'Powered by ',
