@@ -171,6 +171,12 @@ button:focus-visible, input[type="range"]:focus-visible, input[type="checkbox"]:
 .slider { display: grid; gap: var(--s1); font-size: var(--t-sm); color: var(--muted); }
 .slider input { width: 100%; margin: 0; height: 28px; accent-color: var(--accent); }
 .slider output { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--fg); }
+.suggest { justify-self: start; display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s2); max-width: 100%; min-height: 36px;
+  padding: var(--s1) var(--s3); border: 1px dashed var(--olive); border-radius: var(--r-sm); background: color-mix(in srgb, var(--olive) 10%, transparent);
+  color: var(--fg); font: 400 var(--t-sm)/1.35 var(--font-body); text-align: left; cursor: pointer; }
+.suggest:hover { border-style: solid; }
+.suggest-k { font-size: var(--t-xs); color: var(--muted); }
+.suggest-a { font-weight: 700; color: var(--accent); }
 .bg-tools { display: grid; gap: var(--s2); padding-top: var(--s3); border-top: 1px dashed var(--line); }
 .swatches { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; }
 .swatch { display: inline-flex; align-items: center; gap: var(--s2); min-height: 40px; padding: 0 var(--s3) 0 var(--s2); cursor: pointer;
@@ -1023,6 +1029,96 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     return c.toDataURL('image/jpeg', 0.92);
   }
 
+  /* Thai → Latin (Royal Thai General System, simplified) for suggesting the English name. Rule-based, so the driver reviews it. */
+  var ROMAN = (function () {
+    var C = { 'ก': ['k', 'k'], 'ข': ['kh', 'k'], 'ฃ': ['kh', 'k'], 'ค': ['kh', 'k'], 'ฅ': ['kh', 'k'], 'ฆ': ['kh', 'k'], 'ง': ['ng', 'ng'],
+      'จ': ['ch', 't'], 'ฉ': ['ch', 't'], 'ช': ['ch', 't'], 'ซ': ['s', 't'], 'ฌ': ['ch', 't'], 'ญ': ['y', 'n'], 'ฎ': ['d', 't'], 'ฏ': ['t', 't'],
+      'ฐ': ['th', 't'], 'ฑ': ['th', 't'], 'ฒ': ['th', 't'], 'ณ': ['n', 'n'], 'ด': ['d', 't'], 'ต': ['t', 't'], 'ถ': ['th', 't'], 'ท': ['th', 't'],
+      'ธ': ['th', 't'], 'น': ['n', 'n'], 'บ': ['b', 'p'], 'ป': ['p', 'p'], 'ผ': ['ph', 'p'], 'ฝ': ['f', 'p'], 'พ': ['ph', 'p'], 'ฟ': ['f', 'p'],
+      'ภ': ['ph', 'p'], 'ม': ['m', 'm'], 'ย': ['y', 'i'], 'ร': ['r', 'n'], 'ล': ['l', 'n'], 'ว': ['w', 'o'], 'ศ': ['s', 't'], 'ษ': ['s', 't'],
+      'ส': ['s', 't'], 'ห': ['h', ''], 'ฬ': ['l', 'n'], 'อ': ['', ''], 'ฮ': ['h', ''] };
+    var CLUSTER2 = { 'ร': 1, 'ล': 1, 'ว': 1 };
+    var CLUSTER1 = { 'ก': 1, 'ข': 1, 'ค': 1, 'ป': 1, 'ผ': 1, 'พ': 1, 'ต': 1, 'บ': 1, 'ด': 1, 'ฟ': 1 };
+    var H_LEAD = { 'ง': 1, 'ญ': 1, 'น': 1, 'ม': 1, 'ย': 1, 'ร': 1, 'ล': 1, 'ว': 1 };
+    var LEAD = { 'เ': 1, 'แ': 1, 'โ': 1, 'ใ': 1, 'ไ': 1 };
+    var AFTER = /[ะัาำิีึืุู็]/;
+    var TITLES = [['นางสาว', 'Miss'], ['นาง', 'Mrs.'], ['นาย', 'Mr.'], ['ด.ช.', 'Master'], ['ด.ญ.', 'Miss']];
+    function isC(ch) { return !!C[ch]; }
+
+    function word(w) {
+      w = w.replace(/[่-๋]/g, '')                 /* tone marks */
+           .replace(/[ก-ฮ][ิ-ุ]?์/g, '') /* silenced letters (การันต์) */
+           .replace(/ๆ/g, '');
+      var out = '', i = 0, n = w.length;
+      while (i < n) {
+        var ch = w[i];
+        if (!isC(ch) && !LEAD[ch] && ch !== 'ฤ') { out += ch; i++; continue; }
+        if (ch === 'ฤ') { out += 'rue'; i++; continue; }
+        var lead = '', init = '', cons = '';
+        if (LEAD[ch]) { lead = ch; i++; }
+        if (i >= n || !isC(w[i])) { out += { 'เ': 'e', 'แ': 'ae', 'โ': 'o', 'ใ': 'ai', 'ไ': 'ai' }[lead] || ''; continue; }
+        var c1 = w[i]; i++;
+        var c2 = w[i], c3 = w[i + 1];
+        var opens = function (k) {
+          if (k >= n) return !!lead && (lead === 'ไ' || lead === 'ใ') && (c2 === 'ร' || c2 === 'ล');
+          return AFTER.test(w[k]) || w[k] === 'อ' || (!!lead && isC(w[k]) && (k + 1 === n || !!LEAD[w[k + 1]]));
+        };
+        if (c1 === 'ห' && H_LEAD[c2] && (lead || AFTER.test(c3 || '') || c3 === 'อ' || c3 === 'ว' || c3 === 'ย')) { init = C[c2][0]; i++; }
+        else if (c1 === 'อ' && c2 === 'ย' && (lead || AFTER.test(c3 || ''))) { init = 'y'; i++; }
+        else if (c2 === 'ร' && { 'ศ': 1, 'ส': 1, 'จ': 1, 'ซ': 1 }[c1] && AFTER.test(c3 || '')) { init = C[c1][0]; i++; }
+        else if (c1 === 'ท' && c2 === 'ร' && AFTER.test(c3 || '')) { init = 's'; i++; }
+        else if (CLUSTER1[c1] && CLUSTER2[c2] && opens(i + 1)) { init = C[c1][0] + C[c2][0]; i++; }
+        else init = C[c1][0];
+        /* vowel after the initial */
+        var v = '', ch2 = w[i], ch3 = w[i + 1];
+        if (lead === 'เ' && ch2 === 'ี' && ch3 === 'ย') { v = 'ia'; i += 2; }
+        else if (lead === 'เ' && ch2 === 'ื' && ch3 === 'อ') { v = 'uea'; i += 2; }
+        else if (lead === 'เ' && ch2 === 'า' && ch3 === 'ะ') { v = 'o'; i += 2; }
+        else if (lead === 'เ' && ch2 === 'า') { v = 'ao'; i += 1; }
+        else if (lead === 'เ' && ch2 === 'อ') { v = 'oe'; i += 1; }
+        else if (lead === 'เ' && ch2 === '็') { v = 'e'; i += 1; }
+        else if (lead === 'เ' && ch2 === 'ะ') { v = 'e'; i += 1; }
+        else if (lead === 'เ' && ch2 === 'ิ') { v = 'oe'; i += 1; }
+        else if (lead === 'แ' && (ch2 === 'ะ' || ch2 === '็')) { v = 'ae'; i += 1; }
+        else if (lead === 'โ' && ch2 === 'ะ') { v = 'o'; i += 1; }
+        else if (lead) { v = { 'เ': 'e', 'แ': 'ae', 'โ': 'o', 'ใ': 'ai', 'ไ': 'ai' }[lead]; }
+        else if (ch2 === 'ั' && ch3 === 'ว') { v = 'ua'; i += 2; }
+        else if (ch2 === 'ั') { v = 'a'; i += 1; }
+        else if (ch2 === 'า' || ch2 === 'ะ') { v = 'a'; i += 1; }
+        else if (ch2 === 'ำ') { v = 'am'; i += 1; }
+        else if (ch2 === 'ิ' || ch2 === 'ี') { v = 'i'; i += 1; }
+        else if (ch2 === 'ึ') { v = 'ue'; i += 1; }
+        else if (ch2 === 'ื') { v = 'ue'; i += (ch3 === 'อ' ? 2 : 1); }
+        else if (ch2 === 'ุ' || ch2 === 'ู') { v = 'u'; i += 1; }
+        else if (ch2 === '็') { v = 'o'; i += 1; }
+        else if (ch2 === 'อ' && (i + 1 >= n || (isC(ch3) && !AFTER.test(w[i + 2] || '')))) { v = 'o'; i += 1; }
+        else if (ch2 === 'ว' && isC(ch3) && !AFTER.test(w[i + 2] || '')) { v = 'ua'; i += 1; }
+        else if (ch2 === 'ร' && ch3 === 'ร') { v = 'an'; i += 2; if (isC(w[i]) && !AFTER.test(w[i + 1] || '')) { v = 'a'; } }
+        /* Final consonant: f closes this syllable unless it is needed to start the next one —
+           i.e. a vowel mark follows it, or only one bare consonant is left after it (that pair reads C-o-C). */
+        var f = w[i], r0 = w[i + 1], r1 = w[i + 2];
+        var takesFinal = isC(f) && v !== 'am' && !(v === 'ao' && f === 'ว') && !((lead === 'ไ' || lead === 'ใ') && f === 'ย') &&
+          (r0 === undefined || LEAD[r0] || (isC(r0) && r0 + r1 !== 'รร' && (r1 === undefined ? (r0 === 'ร' && !!{ 'ช': 1, 'ต': 1, 'ท': 1, 'ศ': 1, 'ส': 1, 'ด': 1 }[f]) : (AFTER.test(r1) || r1 === 'อ' || isC(r1) || LEAD[r1]))));
+        if (takesFinal) { cons = C[f][1]; i++; if (w[i] === 'ร' && i + 1 === n) i++; }
+        else if ((lead === 'ไ' || lead === 'ใ') && f === 'ย' && i + 1 === n) i++;
+        if (!v) v = cons ? 'o' : 'a';
+        out += init + v + cons;
+      }
+      return out;
+    }
+
+    function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+    return function (thai) {
+      var s = (thai || '').trim().replace(/\s+/g, ' '), title = '';
+      for (var t = 0; t < TITLES.length; t++) {
+        if (s.indexOf(TITLES[t][0]) === 0) { title = TITLES[t][1]; s = s.slice(TITLES[t][0].length).trim(); break; }
+      }
+      var parts = s.split(' ').filter(Boolean).map(function (p) { return cap(word(p).replace(/[^A-Za-z.\-']/g, '')); }).filter(Boolean);
+      if (!parts.length) return '';
+      return (title ? title + (title.slice(-1) === '.' ? '' : ' ') : '') + parts.join(' ');
+    };
+  })();
+
   function App() {
     var initial = loadDraft();
     if (initial && initial.photo === '__sample__') initial.photo = SAMPLE_PHOTO;
@@ -1228,6 +1324,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     }
 
     var size = SIZES[st.size] || SIZES.a5;
+    var suggestEn = ROMAN(st.nameTh);
     var famLabel = st.family === 'custom' ? (st.customFont ? st.customFont.name : 'ยังไม่ได้เลือกไฟล์')
                  : st.family === 'local' ? (st.localFont || 'ยังไม่ได้พิมพ์ชื่อ') : FAMILIES[st.family].label.split(' — ')[0];
 
@@ -1270,7 +1367,10 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
             h(Field, { id: 'nameTh', label: 'ชื่อ–นามสกุล', en: 'Thai name' },
               h('input', { id: 'nameTh', type: 'text', value: st.nameTh, onChange: function (e) { set('nameTh', e.target.value); }, placeholder: 'นาย ชื่อ นามสกุล' })),
             h(Field, { id: 'nameEn', label: 'ชื่อภาษาอังกฤษ', en: 'English name' },
-              h('input', { id: 'nameEn', type: 'text', value: st.nameEn, onChange: function (e) { set('nameEn', e.target.value); }, placeholder: 'Mr.Firstname Lastname' })),
+              h('input', { id: 'nameEn', type: 'text', value: st.nameEn, onChange: function (e) { set('nameEn', e.target.value); }, placeholder: 'Mr.Firstname Lastname' }),
+              suggestEn && suggestEn !== st.nameEn.trim() ? h('button', { type: 'button', className: 'suggest', onClick: function () { set('nameEn', suggestEn); } },
+                h('span', { className: 'suggest-k' }, 'แนะนำ'), h('span', { className: 'latin' }, suggestEn), h('span', { className: 'suggest-a' }, 'ใช้ชื่อนี้')) : null,
+              h('span', { className: 'hint' }, 'ใช้ตัวสะกดตามใบอนุญาตหรือหนังสือเดินทางถ้ามี คำแนะนำสะกดตามหลักราชบัณฑิตฯ')),
             h(Field, { id: 'licenseNo', label: 'ใบอนุญาตขับรถ เลขที่', en: 'Licence no.', hint: 'ตัวอักษรไทยนำหน้าได้ เช่น ภก.1234/67' },
               h('input', { id: 'licenseNo', type: 'text', value: st.licenseNo, onChange: function (e) { set('licenseNo', e.target.value); }, placeholder: 'ภก.0000/00' })),
             h('div', { className: 'row' },
