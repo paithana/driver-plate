@@ -1,0 +1,12 @@
+# Pre-refine backup: contains a real driver's name, licence, plate and photo
+DriverCard.orig.html
+
+# Personal / tool state
+.claude/settings.local.json
+CLAUDE.local.md
+.remember/
+.playwright-mcp/
+
+# Background-removal binaries: run vendor/fetch.sh (pinned + sha256-checked)
+vendor/ort/
+vendor/modnet/
