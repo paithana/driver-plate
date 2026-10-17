@@ -15,8 +15,9 @@ Deploy the DriverCard page. Stop and report at the first failing step.
    - `sudo install -d -m 755 /var/www/driver/vendor/ort /var/www/driver/vendor/modnet`
    - `sudo install -m 644 vendor/ort/* /var/www/driver/vendor/ort/ && sudo install -m 644 vendor/modnet/* /var/www/driver/vendor/modnet/ && sudo install -m 644 vendor/NOTICE.md /var/www/driver/vendor/`
    - `sudo install -m 644 ads.txt /var/www/driver/ads.txt`
+   - `sudo install -m 644 p.html /var/www/driver/p.html`
    - `sudo install -m 644 DriverCard.html /var/www/driver/index.html`
-3. Verify: `curl -s --compressed https://driver.thinkweb.me/ -o <scratch>/pub.html` and `cmp` it against the local file. If it differs, show the first differing bytes — a `type="…-text/javascript"` rewrite means Rocket Loader caught a script without `data-cfasync="false"`.
+3. Verify: `curl -s --compressed https://driver.thinkweb.me/ -o <scratch>/pub.html` and `cmp` it against the local file. Do the same for `https://driver.thinkweb.me/p` against `p.html`. If it differs, show the first differing bytes — a `type="…-text/javascript"` rewrite means Rocket Loader caught a script without `data-cfasync="false"`.
    Also `curl -s -o /dev/null -w '%{http_code} %{content_type}'` each `/vendor/ort/*` and `/vendor/modnet/model_quantized.onnx` URL: expect 200 with `application/javascript`, `application/wasm` or `application/octet-stream`.
 4. If the change touched background removal, upload a head-and-shoulders photo, click "ลบพื้นหลัง", and confirm the colour swatches appear with no console errors.
 5. If the change touched layout or styles, open the page in the browser at 1280px and 375px, confirm no console errors and `scrollWidth === innerWidth` on the phone width.
