@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="ทำป้ายข้อมูลผู้ขับรถสำหรับติดในรถโดยสาร กรอกข้อมูล ใส่รูป แล้วบันทึกเป็น JPEG 300 dpi — ข้อมูลอยู่ในเครื่องคุณเท่านั้น">
 <meta name="theme-color" content="#2d4a2b">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ป้ายผู้ขับรถ">
 <script async data-cfasync="false" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4611537326733417"
      crossorigin="anonymous"></script>
 <meta property="og:title" content="ป้ายข้อมูลผู้ขับรถ">
@@ -236,6 +241,16 @@ input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; ov
   justify-content: space-between; gap: var(--s2) var(--s5); font-size: var(--t-sm); line-height: 1.6; color: var(--muted); }
 .foot p { margin: 0; max-width: 64ch; }
 .foot-notes { display: grid; gap: var(--s2); }
+.app-panel { margin-top: var(--s7); padding: var(--s4) var(--s5); border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface);
+  display: grid; gap: var(--s2); max-width: 760px; }
+.app-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s3); font-size: var(--t-md); }
+.pill { display: inline-flex; align-items: center; min-height: 28px; padding: 0 var(--s3); border-radius: 999px; font-size: var(--t-xs); font-weight: 700;
+  background: color-mix(in srgb, var(--warn) 14%, transparent); color: var(--warn); }
+.pill.ok { background: color-mix(in srgb, var(--ok) 14%, transparent); color: var(--ok); }
+.app-panel .bar { display: block; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.app-panel .bar span { display: block; height: 100%; background: var(--accent); transition: width .2s; }
+.hint.warn { color: var(--warn); }
+.app-panel + .ad-slot { margin-top: var(--s5); }
 .ad-slot { margin-top: var(--s7); padding: var(--s3) var(--s4) var(--s4); border: 1px dashed var(--line); border-radius: var(--r-md); display: grid; gap: var(--s2); }
 .ad-label { font-size: var(--t-xs); color: var(--muted); }
 .ad-slot:has(ins[data-ad-status="unfilled"]) { display: none; }
@@ -292,7 +307,7 @@ input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; ov
   @page { size: A4 landscape; margin: 8mm; }
   body { background: #fff; }
   body::before { display: none; }
-  .page, .stickybar { display: none; }
+  .page, .stickybar, .app-panel { display: none; }
   .printsheet { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
   .printsheet img { width: 100%; height: auto; }
 }
@@ -3639,6 +3654,75 @@ var qrcode = function() {
     { k: 'province', label: 'จังหวัด', note: 'จังหวัดที่ออกใบอนุญาต อาจไม่ใช่จังหวัดของทะเบียนรถ', off: true }
   ];
 
+  /* PWA: service worker (sw.js) + install prompt + an opt-in offline pack for the lazy-loaded runtimes/models. */
+  var OFFLINE_CACHE = 'vendor-v1';   /* must match VENDOR in sw.js */
+  var OFFLINE_PACK = ['/vendor/ort/ort.wasm.min.js', '/vendor/ort/ort-wasm-simd-threaded.mjs', '/vendor/ort/ort-wasm-simd-threaded.wasm',
+    '/vendor/modnet/model_quantized.onnx', '/vendor/tesseract/tesseract.min.js', '/vendor/tesseract/worker.min.js',
+    '/vendor/tesseract/core/tesseract-core-lstm.wasm.js', '/vendor/tesseract/core/tesseract-core-simd-lstm.wasm.js',
+    '/vendor/tesseract/core/tesseract-core-relaxedsimd-lstm.wasm.js', '/vendor/tesseract/lang/tha.traineddata.gz', '/vendor/tesseract/lang/eng.traineddata.gz'];
+  var pwaCapable = location.protocol === 'https:' && 'serviceWorker' in navigator && 'caches' in window;
+  if (pwaCapable) window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(function () {}); });
+  var installEvent = null, installListeners = [];
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); installEvent = e; installListeners.forEach(function (f) { f(true); }); });
+  window.addEventListener('appinstalled', function () { installEvent = null; installListeners.forEach(function (f) { f(false); }); });
+  function offlinePackStatus() {
+    if (!pwaCapable) return Promise.resolve(0);
+    return caches.open(OFFLINE_CACHE).then(function (c) {
+      return Promise.all(OFFLINE_PACK.map(function (u) { return c.match(u).then(function (r) { return r ? 1 : 0; }); }));
+    }).then(function (a) { return a.reduce(function (x, y) { return x + y; }, 0); }).catch(function () { return 0; });
+  }
+  function downloadOfflinePack(onStep) {
+    if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {});
+    return caches.open(OFFLINE_CACHE).then(function (c) {
+      var done = 0;
+      return OFFLINE_PACK.reduce(function (chain, u) {
+        return chain.then(function () {
+          return c.match(u).then(function (hit) {
+            if (hit) return;
+            return fetch(u, { cache: 'reload' }).then(function (res) { if (!res.ok) throw new Error(u); return c.put(u, res); });
+          }).then(function () { done++; onStep(done, OFFLINE_PACK.length); });
+        });
+      }, Promise.resolve());
+    });
+  }
+  var isStandalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  function AppPanel(props) {
+    var _i = useState(!!installEvent); var canInstall = _i[0], setCanInstall = _i[1];
+    var _p = useState({ have: 0, busy: false, done: 0, err: false }); var pack = _p[0], setPack = _p[1];
+    var _o = useState(navigator.onLine !== false); var online = _o[0], setOnline = _o[1];
+    useEffect(function () {
+      installListeners.push(setCanInstall);
+      var on = function () { setOnline(true); }, off = function () { setOnline(false); };
+      window.addEventListener('online', on); window.addEventListener('offline', off);
+      offlinePackStatus().then(function (n) { setPack(function (p) { return Object.assign({}, p, { have: n }); }); });
+      return function () { installListeners = installListeners.filter(function (f) { return f !== setCanInstall; }); window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+    }, []);
+    if (!pwaCapable) return null;
+    var total = OFFLINE_PACK.length, ready = pack.have === total;
+    function onInstall() { if (!installEvent) return; installEvent.prompt(); installEvent.userChoice.then(function () { installEvent = null; setCanInstall(false); }); }
+    function onPack() {
+      setPack({ have: pack.have, busy: true, done: pack.have, err: false });
+      downloadOfflinePack(function (d) { setPack(function (p) { return Object.assign({}, p, { done: d }); }); })
+        .then(function () { setPack({ have: total, busy: false, done: total, err: false }); props.onMsg({ text: 'พร้อมใช้ออฟไลน์แล้ว รวมถึงลบพื้นหลังและสแกนใบอนุญาต', tone: 'ok' }); })
+        .catch(function () { offlinePackStatus().then(function (n) { setPack({ have: n, busy: false, done: n, err: true }); }); });
+    }
+    return h('section', { className: 'app-panel', 'aria-label': 'ใช้งานแบบแอป' },
+      h('div', { className: 'app-head' },
+        h('b', null, isStandalone ? 'ใช้งานเป็นแอปอยู่' : 'ใช้เป็นแอปบนมือถือ'),
+        online ? null : h('span', { className: 'pill' }, 'ออฟไลน์ · ใช้งานได้ตามปกติ')),
+      h('p', { className: 'hint' }, 'หน้านี้ทำงานได้แม้ไม่มีอินเทอร์เน็ตหลังเปิดครั้งแรก ข้อมูลทั้งหมดอยู่ในเครื่อง'),
+      h('div', { className: 'photo-actions' },
+        canInstall && !isStandalone ? h('button', { type: 'button', className: 'btn small primary', onClick: onInstall }, 'ติดตั้งแอป') : null,
+        ready ? h('span', { className: 'pill ok' }, 'ลบพื้นหลังและสแกนบัตรพร้อมใช้ออฟไลน์')
+          : h('button', { type: 'button', className: 'btn small', onClick: onPack, disabled: pack.busy || !online },
+              pack.busy ? 'กำลังดาวน์โหลด ' + pack.done + '/' + total + '…' : 'ดาวน์โหลดสำหรับใช้ออฟไลน์ (~37 MB)')),
+      pack.busy ? h('span', { className: 'bar' }, h('span', { style: { width: Math.max(4, pack.done / total * 100) + '%' } })) : null,
+      pack.err ? h('p', { className: 'hint warn' }, 'ดาวน์โหลดไม่ครบ ลองใหม่อีกครั้งเมื่อสัญญาณดี') : null,
+      !canInstall && !isStandalone && isIOS ? h('p', { className: 'hint' }, 'iPhone/iPad: กดปุ่มแชร์ แล้วเลือก “เพิ่มลงในหน้าจอโฮม”') : null);
+  }
+
   function App() {
     var initial = loadDraft();
     if (initial && initial.photo === '__sample__') initial.photo = SAMPLE_PHOTO;
@@ -4038,6 +4122,7 @@ var qrcode = function() {
             h('label', { className: 'check', htmlFor: 'frame' },
               h('input', { id: 'frame', type: 'checkbox', checked: !!st.frame, onChange: function (e) { set('frame', e.target.checked); } }),
               'ใส่กรอบเส้นบางรอบป้าย (สะดวกเวลาตัด)')))),
+      h(AppPanel, { onMsg: setMsg }),
       showAd ? h(AdUnit) : null,
       h('footer', { className: 'foot' },
         h('div', { className: 'foot-notes' },

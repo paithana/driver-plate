@@ -17,6 +17,7 @@ Deploy the DriverCard page. Stop and report at the first failing step.
    - `sudo install -m 644 vendor/tesseract/*.js /var/www/driver/vendor/tesseract/ && sudo install -m 644 vendor/tesseract/core/* /var/www/driver/vendor/tesseract/core/ && sudo install -m 644 vendor/tesseract/lang/* /var/www/driver/vendor/tesseract/lang/`
    - `sudo install -m 644 ads.txt /var/www/driver/ads.txt`
    - `sudo install -m 644 p.html /var/www/driver/p.html`
+   - `sudo install -d -m 755 /var/www/driver/icons && sudo install -m 644 icons/*.png /var/www/driver/icons/ && sudo install -m 644 sw.js manifest.webmanifest /var/www/driver/`
    - `sudo install -m 644 DriverCard.html /var/www/driver/index.html`
 3. Verify: `curl -s --compressed https://driver.thinkweb.me/ -o <scratch>/pub.html` and `cmp` it against the local file. Do the same for `https://driver.thinkweb.me/p` against `p.html`. If it differs, show the first differing bytes — a `type="…-text/javascript"` rewrite means Rocket Loader caught a script without `data-cfasync="false"`.
    Also `curl -s -o /dev/null -w '%{http_code} %{content_type}'` each `/vendor/ort/*` and `/vendor/modnet/model_quantized.onnx` URL: expect 200 with `application/javascript`, `application/wasm` or `application/octet-stream`.
