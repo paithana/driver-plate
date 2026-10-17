@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="ทำป้ายข้อมูลผู้ขับรถสำหรับติดในรถโดยสาร กรอกข้อมูล ใส่รูป แล้วบันทึกเป็น JPEG 300 dpi — ข้อมูลอยู่ในเครื่องคุณเท่านั้น">
 <meta name="theme-color" content="#2d4a2b">
+<script async data-cfasync="false" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4611537326733417"
+     crossorigin="anonymous"></script>
 <meta property="og:title" content="ป้ายข้อมูลผู้ขับรถ">
 <meta property="og:description" content="สร้างป้ายข้อมูลผู้ขับรถ พิมพ์ A4 / A5 ได้ทันที">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='14' width='56' height='36' rx='6' fill='%23faf9f6' stroke='%232d4a2b' stroke-width='4'/%3E%3Crect x='11' y='21' width='14' height='22' rx='2' fill='%23a4ac86'/%3E%3Cpath d='M31 26h22M31 33h22M31 40h14' stroke='%232d4a2b' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
@@ -578,29 +580,19 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   /* Footer credit. Empty name = the domain this page is served from (driver.thinkweb.me -> thinkweb.me); set url to make it a link. */
   var SITE = { name: '', url: '' };
 
-  /* One AdSense unit, shown after the form only once a driver has downloaded or printed, and only the first time per browser.
-     AdSense is not loaded at all before that. slot = the display ad unit's data-ad-slot; empty disables ads. */
-  var ADS = { client: 'ca-pub-4611537326733417', slot: '', seenKey: 'driver-card-ads-seen' };
+  /* AdSense's own <head> tag loads the library on every visit (needed for site review); with Auto ads off it shows nothing by itself.
+     The one display unit renders after the form only after a driver's first download or print in this browser. Empty slot = no unit. */
+  var ADS = { client: 'ca-pub-4611537326733417', slot: '7260135730', seenKey: 'driver-card-ads-seen' };
   function adsDue() {
     if (!ADS.slot || !/^https?:$/.test(location.protocol)) return false;
     try { return !localStorage.getItem(ADS.seenKey); } catch (e) { return true; }
   }
   function markAdsSeen() { try { localStorage.setItem(ADS.seenKey, new Date().toISOString()); } catch (e) {} }
-  var adsenseLoaded = false;
-  function loadAdsense() {
-    if (adsenseLoaded) return;
-    adsenseLoaded = true;
-    var sc = document.createElement('script');
-    sc.async = true; sc.crossOrigin = 'anonymous';
-    sc.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + ADS.client;
-    document.head.appendChild(sc);
-  }
   function AdUnit() {
     var pushed = useRef(false);
     useEffect(function () {
       if (pushed.current) return;
       pushed.current = true;
-      loadAdsense();
       try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
     }, []);
     return h('aside', { className: 'ad-slot', 'aria-label': 'โฆษณา' },
@@ -1300,7 +1292,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
       h('footer', { className: 'foot' },
         h('div', { className: 'foot-notes' },
           h('p', null, h('b', null, 'ข้อมูลอยู่ในเครื่องคุณ'), ' — ชื่อ รูป และเลขทะเบียนไม่ถูกส่งขึ้นเซิร์ฟเวอร์ของเรา ร่างจะถูกเก็บไว้ในเบราว์เซอร์นี้ กด “ล้างข้อมูล” เพื่อลบ'),
-          h('p', null, 'หลังดาวน์โหลดหรือพิมพ์ครั้งแรก หน้านี้อาจแสดงโฆษณาจาก Google หนึ่งชิ้นท้ายฟอร์ม ซึ่งอาจใช้คุกกี้')),
+          h('p', null, 'หน้านี้ใช้ Google AdSense ซึ่งอาจใช้คุกกี้ โฆษณาหนึ่งชิ้นจะแสดงท้ายฟอร์มหลังดาวน์โหลดหรือพิมพ์ครั้งแรก')),
         h('p', { className: 'foot-meta' },
           h('span', null, 'ขนาดพิมพ์ A4 / A5 แนวนอน · 300 dpi'),
           siteName() ? h('span', { className: 'powered latin' }, 'Powered by ',
