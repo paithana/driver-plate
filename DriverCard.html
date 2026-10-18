@@ -3138,7 +3138,6 @@ var qrcode = function() {
     return (FAMILIES[st.family] || FAMILIES.sarabun).css + FALLBACK;
   }
   function fontStr(weight, px, fam) { return weight + ' ' + px + 'px ' + fam; }
-  var NUM_FONT = function (px) { return '400 ' + px + 'px Anton, Impact, "Arial Narrow", sans-serif'; };
   /* Only 400 and 700 faces are embedded; other weights stroke the nearest lighter face in the fill colour.
      boldStroke(fam) finds the stroke (in em) that gives the 400 face the same ink as the real 700 face, so 400→700 is even. */
   var WEIGHT = { min: 400, max: 900, step: 50 };
@@ -3175,7 +3174,7 @@ var qrcode = function() {
     var sample = 'ผู้โดยสารโปรดจำ Mr. 0123456789';
     fontCache[key] = Promise.all([
       f.load(fontStr(400, 40, fam), sample), f.load(fontStr(700, 40, fam), sample),
-      f.load(fontStr(400, 40, 'Sarabun' + FALLBACK), sample), f.load(NUM_FONT(40), '0123456789/-'),
+      f.load(fontStr(400, 40, 'Sarabun' + FALLBACK), sample),
       f.load('700 20px Taviraj', 'ป้าย')
     ]).then(function () { return f.ready; }).catch(function () {});
     return fontCache[key];
@@ -3197,7 +3196,7 @@ var qrcode = function() {
     }
     return runs.map(function (r) {
       var s = spec[r.kind];
-      return { text: r.text, mk: s[0], size: s[1], sx: s[2] || 1 };
+      return { text: r.text, mk: s[0], size: s[1], sx: s[2] || 1, em: s[3] };
     });
   }
   function run(text, mk, size, sx) { return [{ text: text, mk: mk, size: size, sx: sx || 1 }]; }
@@ -3212,15 +3211,16 @@ var qrcode = function() {
     var total = measureRuns(ctx, runs);
     if (opts.maxW && total > opts.maxW) {
       var k = opts.maxW / total;
-      runs = runs.map(function (r) { return { text: r.text, mk: r.mk, size: r.size * k, sx: r.sx }; });
+      runs = runs.map(function (r) { return { text: r.text, mk: r.mk, size: r.size * k, sx: r.sx, em: r.em }; });
       total = measureRuns(ctx, runs);
     }
     var cx = opts.align === 'center' ? x - total / 2 : x;
     runs.forEach(function (r) {
       ctx.font = r.mk(r.size);
       ctx.save(); ctx.translate(cx, y); ctx.scale(r.sx, 1); ctx.fillText(r.text, 0, 0);
-      if (embolden > 0 && r.mk !== NUM_FONT) {
-        ctx.lineWidth = embolden * r.size; ctx.lineJoin = 'round'; ctx.strokeStyle = ctx.fillStyle; ctx.strokeText(r.text, 0, 0);
+      var eb = r.em != null ? r.em : embolden;   /* a run may carry its own outline (the extra-bold digits) */
+      if (eb > 0) {
+        ctx.lineWidth = eb * r.size; ctx.lineJoin = 'round'; ctx.strokeStyle = ctx.fillStyle; ctx.strokeText(r.text, 0, 0);
       }
       ctx.restore();
       cx += r.w;
@@ -3281,7 +3281,9 @@ var qrcode = function() {
     ctx.fillStyle = '#000000';
 
     /* Right column: build the lines, then stack them on an even rhythm centred beside the photo. */
-    var num = st.boldDigits ? { lic: [NUM_FONT, 43 * k, 0.8], reg: [NUM_FONT, 52 * k, 0.76] }
+    /* Extra-bold digits: the chosen family at 900 (700 face + calibrated outline), whatever the text weight is. */
+    var BF = function (px) { return fontStr(700, px, fam); }, em900 = weightStroke(WEIGHT.max, fam);
+    var num = st.boldDigits ? { lic: [BF, sz('licNum'), 1, em900], reg: [BF, sz('regNum'), 1, em900] }
                             : { lic: [TF, sz('licNum'), 1], reg: [TF, sz('regNum'), 1] };
     var lines = [];
     if (st.nameTh.trim()) lines.push({ key: 'nameTh', runs: mixedRuns(st.nameTh, { th: [TF, sz('nameTh'), 1], x: [TF, sz('nameEn'), 1] }) });
@@ -3573,7 +3575,7 @@ var qrcode = function() {
     var all = lines.join('\n'), out = {};
     var TH = '[\\u0E01-\\u0E4E]';
 
-    var m = all.match(new RegExp('(นางสาว|นาง|นาย|น\\s?\\.\\s?ส\\s?\\.|ด\\s?\\.\\s?ช\\s?\\.|ด\\s?\\.\\s?ญ\\s?\\.)\\s*(' + TH + '{2,})\\s+(' + TH + '{2,})'));
+    var m = all.match(new RegExp('(นาง\\s?สาว|นาง|นาย|น\\s?\\.\\s?ส\\s?\\.|ด\\s?\\.\\s?ช\\s?\\.|ด\\s?\\.\\s?ญ\\s?\\.)\\s*(' + TH + '{2,})\\s+(' + TH + '{2,})'));
     if (m) {
       var title = m[1].replace(/\s/g, '');
       title = { 'น.ส.': 'นางสาว', 'ด.ช.': 'เด็กชาย', 'ด.ญ.': 'เด็กหญิง' }[title] || title;
@@ -3596,15 +3598,19 @@ var qrcode = function() {
         var flat = l.replace(/(\d)[ \-](?=\d)/g, '$1');
         var hits = flat.match(/(^|\D)(\d{8})(?!\d)/g);
         if (!hits) return;
-        var score = /ฉบับที่|เลขที่|\bNo\b|Licen[cs]e/i.test(l) ? 2 : 1;
+        /* The Latin "No." line beats the Thai "ฉบับที่" one: the English model reads digits more reliably. */
+        var score = /\bNo\b|Licen[cs]e/i.test(l) ? 3 : /ฉบับที่|เลขที่/.test(l) ? 2 : 1;
         if (!best || score > best.score) best = { v: hits[0].replace(/\D/g, ''), score: score };
       });
       if (best) out.licenseNo = best.v;
     }
 
     var flatAll = all.replace(/\s+/g, '');
-    var prov = null;
+    /* OCR often drops tone marks and upper/lower vowels (กระบี่ → กระบี) and confuses ฟ/พ, so fall back to matching consonant skeletons. */
+    var skel = function (x) { return x.replace(/[\u0E31\u0E34-\u0E3A\u0E47-\u0E4E]/g, '').replace(/ฟ/g, 'พ'); };
+    var prov = null, skAll = skel(flatAll);
     PROVINCES.forEach(function (pv) { if (flatAll.indexOf(pv[0]) >= 0 && (!prov || pv[0].length > prov[0].length)) prov = pv; });
+    if (!prov) PROVINCES.forEach(function (pv) { if (skAll.indexOf(skel(pv[0])) >= 0 && (!prov || pv[0].length > prov[0].length)) prov = pv; });
     if (!prov && /กรุงเทพ/.test(flatAll)) prov = PROVINCES[0];
     if (prov) out.province = prov[0];
     return out;
@@ -4138,7 +4144,7 @@ var qrcode = function() {
               h(Slider, { id: 'lineGap', label: 'ระยะห่างบรรทัด', text: Math.round(st.lineGap * 100) + '%', min: 0.85, max: 1.15, step: 0.01, value: st.lineGap, onChange: function (v) { set('lineGap', v); } })),
             h('label', { className: 'check', htmlFor: 'boldDigits' },
               h('input', { id: 'boldDigits', type: 'checkbox', checked: !!st.boldDigits, onChange: function (e) { set('boldDigits', e.target.checked); } }),
-              'เลขใบอนุญาตและทะเบียนแบบหนาพิเศษ (Impact)')),
+              'เลขใบอนุญาตและทะเบียนแบบหนาพิเศษ (900)')),
           h('fieldset', null,
             h('legend', null, 'สายด่วนท้ายป้าย'),
             [0, 1, 2].map(function (i) {
