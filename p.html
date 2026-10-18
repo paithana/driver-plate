@@ -4,46 +4,76 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#2d4a2b">
+<meta name="theme-color" content="#eef1f5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1426" media="(prefers-color-scheme: dark)">
 <title>Your driver · Thailand</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='14' width='56' height='36' rx='6' fill='%23faf9f6' stroke='%232d4a2b' stroke-width='4'/%3E%3Crect x='11' y='21' width='14' height='22' rx='2' fill='%23a4ac86'/%3E%3Cpath d='M31 26h22M31 33h22M31 40h14' stroke='%232d4a2b' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
 <style>
-/* Passenger page opened from the QR on a driver's card. Driver details arrive in the URL fragment (#…), which never reaches the server. */
+/* Passenger page opened from the QR on a driver's card. Driver details arrive in the URL fragment (#…), which never reaches the server.
+   The plate is the one bold element: a passenger checks it against the car. Everything else stays quiet. */
+@font-face { font-family: 'Plate'; font-style: normal; font-weight: 400; font-display: block; unicode-range: U+0020-005A;
+  src: url(data:font/woff2;base64,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) format('woff2'); }   /* Anton (OFL), digits and capitals only */
 :root {
-  --bg: #faf9f6; --surface: #ffffff; --fg: #1f2a1e; --muted: #5c6553; --accent: #2d4a2b; --accent-fg: #faf9f6;
-  --olive: #a4ac86; --line: #d3d7c6; --warn: #8a5a1c;
-  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px;
+  --bg: #eef1f5; --surface: #ffffff; --fg: #0d1b33; --muted: #4f5b70; --line: #cfd6e1;
+  --sign: #12408c; --alarm: #c8102e; --alarm-fg: #ffffff; --warn: #8a4b00;
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Thai", "Noto Sans CJK SC", "PingFang SC", "Hiragino Sans", sans-serif;
+  color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) { --bg: #151d14; --surface: #1d281c; --fg: #ecefe5; --muted: #aab3a0; --accent: #a4ac86; --accent-fg: #151d14; --olive: #b9c0a0; --line: #35422f; --warn: #e3b77a; color-scheme: dark; }
+  :root:not([data-theme="light"]) { --bg: #0b1426; --surface: #13203a; --fg: #e8edf5; --muted: #a3afc4; --line: #2a3a58;
+    --sign: #8fb0ee; --alarm: #cf2a40; --warn: #f0b46a; color-scheme: dark; }
 }
+:root[data-theme="dark"] { --bg: #0b1426; --surface: #13203a; --fg: #e8edf5; --muted: #a3afc4; --line: #2a3a58;
+  --sign: #8fb0ee; --alarm: #cf2a40; --warn: #f0b46a; color-scheme: dark; }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
-body { background: var(--bg); color: var(--fg); font: 400 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Thai", "Noto Sans CJK SC", "PingFang SC", "Hiragino Sans", sans-serif; -webkit-text-size-adjust: 100%; }
-main { max-width: 560px; margin: 0 auto; padding: max(var(--s5), env(safe-area-inset-top)) max(var(--s4), env(safe-area-inset-right)) var(--s6) max(var(--s4), env(safe-area-inset-left)); }
-.langs { display: flex; flex-wrap: wrap; gap: var(--s2); margin-bottom: var(--s5); }
-.langs button { font: inherit; font-size: 14px; padding: 6px 12px; min-height: 36px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
-.langs button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 700; }
-h1 { font-size: 30px; line-height: 1.2; margin: 0 0 var(--s2); color: var(--accent); }
-.lead { margin: 0 0 var(--s5); color: var(--muted); }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: var(--s4) var(--s5); display: grid; gap: var(--s4); box-shadow: 0 10px 30px rgba(45,74,43,.10); }
-.row { display: grid; gap: 2px; }
-.k { font-size: 13px; color: var(--muted); }
-.v { font-size: 22px; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
-.plate { display: inline-grid; justify-items: center; justify-self: start; padding: 4px 16px; border: 3px solid #111; border-radius: 8px; background: #fbfbf7; color: #111; }
-.plate b { font-size: 28px; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
-.plate span { font-size: 14px; font-weight: 700; }
-h2 { font-size: 18px; margin: var(--s6) 0 var(--s3); }
+body { background: var(--bg); color: var(--fg); font: 400 17px/1.6 var(--sans); -webkit-text-size-adjust: 100%; }
+main { max-width: 520px; margin: 0 auto; padding: 0 max(var(--s4), env(safe-area-inset-right)) var(--s7) max(var(--s4), env(safe-area-inset-left)); }
+:focus-visible { outline: 3px solid var(--sign); outline-offset: 2px; }
+
+/* Language strip: one scrolling line, so all 11 languages never push the plate below the fold. */
+.langs { position: sticky; top: 0; z-index: 2; display: flex; gap: var(--s2); overflow-x: auto; scrollbar-width: none;
+  margin: 0 calc(-1 * max(var(--s4), env(safe-area-inset-left))); padding: max(var(--s3), env(safe-area-inset-top)) var(--s4) var(--s3);
+  background: var(--bg); -webkit-mask-image: linear-gradient(90deg, transparent, #000 var(--s4), #000 calc(100% - var(--s6)), transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 var(--s4), #000 calc(100% - var(--s6)), transparent); }
+.langs::-webkit-scrollbar { display: none; }
+.langs button { flex: none; font: inherit; font-size: 15px; line-height: 1; min-height: 40px; padding: 0 var(--s4); border-radius: 20px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
+.langs button[aria-pressed="true"] { background: var(--sign); border-color: var(--sign); color: var(--surface); font-weight: 700; }
+
+h1 { font-size: 28px; line-height: 1.25; margin: var(--s4) 0 var(--s1); }
+.lead { margin: 0 0 var(--s5); color: var(--muted); max-width: 40ch; }
+
+/* The plate: proportions of a Thai plate (34 × 15 cm), registration on top, province below, as on the car. */
+.plate { margin: 0 0 var(--s5); }
+.plate-face { width: min(100%, 360px); aspect-ratio: 34 / 15; display: grid; grid-template-rows: 1.55fr 1fr; place-items: center;
+  padding: 4% 6% 5%; background: #fff; color: #000; border: 3px solid #000; border-radius: 10px;
+  box-shadow: inset 0 0 0 4px #fff, inset 0 0 0 5.5px #000, 0 14px 28px -16px rgba(13, 27, 51, .55); container-type: inline-size; }
+.plate-no { font: 400 clamp(40px, 21cqw, 80px)/1 'Plate', var(--sans); letter-spacing: .02em; white-space: nowrap; align-self: end; }
+.plate-no.long { font-size: clamp(30px, 15cqw, 60px); }
+.plate-no .th { font: 800 .74em/1 var(--sans); }   /* Thai letters: no plate face covers them, so match its weight instead */
+.plate-prov { font: 700 clamp(18px, 9cqw, 32px)/1.2 var(--sans); white-space: nowrap; }
+.plate figcaption { margin-top: var(--s2); font-size: 15px; color: var(--muted); }
+
+.facts { margin: 0; display: grid; gap: var(--s4); }
+.facts div { display: grid; gap: 2px; }
+.facts dt { font-size: 14px; color: var(--muted); }
+.facts dd { margin: 0; font-size: 23px; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+
+h2 { font-size: 19px; line-height: 1.35; margin: var(--s7) 0 var(--s3); }
 .calls { display: grid; gap: var(--s2); padding: 0; margin: 0; list-style: none; }
-.calls a { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); min-height: 56px; padding: var(--s2) var(--s4);
-  border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); text-decoration: none; }
-.calls a:hover { border-color: var(--accent); }
-.calls .num { flex: none; font-size: 22px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
-.calls .num::before { content: "☎ "; font-size: 16px; }
-.tip, .note { font-size: 14px; color: var(--muted); margin: var(--s4) 0 0; }
-.note a { color: var(--accent); }
-.bad { padding: var(--s4); border: 1px solid var(--warn); border-radius: 12px; color: var(--warn); }
-[dir="rtl"] .calls a { flex-direction: row-reverse; }
+.calls a { display: grid; grid-template-columns: 64px 1fr; align-items: center; gap: var(--s4); min-height: 60px; padding: var(--s2) var(--s4);
+  border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface); color: var(--fg); text-decoration: none; line-height: 1.35; }
+.calls .num { font: 400 28px/1 'Plate', var(--sans); color: var(--sign); letter-spacing: .02em; }
+.calls li:first-child a { background: var(--alarm); border-color: var(--alarm); color: var(--alarm-fg); font-weight: 700; }
+.calls li:first-child .num { color: var(--alarm-fg); }
+@media (hover: hover) { .calls a:hover { border-color: var(--sign); } .calls li:first-child a:hover { filter: brightness(1.08); } }
+
+.tip { margin: var(--s5) 0 0; font-size: 15px; }
+.note { margin: var(--s2) 0 0; font-size: 14px; color: var(--muted); }
+.note a { color: var(--sign); text-underline-offset: 3px; }
+.bad { margin: 0 0 var(--s5); padding: var(--s4); border: 1.5px solid var(--warn); border-radius: 12px; color: var(--warn); }
 </style>
 </head>
 <body>
@@ -119,34 +149,50 @@ h2 { font-size: 18px; margin: var(--s6) 0 var(--s3); }
     (kids || []).forEach(function (c) { if (c) e.appendChild(c); });
     return e;
   }
+  /* English → Thai province names, so the plate reads like the real one. Copied from PROVINCES in DriverCard.html; keep in sync. */
+  var PROV_TH = {'Bangkok':'กรุงเทพมหานคร','Krabi':'กระบี่','Kanchanaburi':'กาญจนบุรี','Kalasin':'กาฬสินธุ์','Kamphaeng Phet':'กำแพงเพชร','Khon Kaen':'ขอนแก่น','Chanthaburi':'จันทบุรี','Chachoengsao':'ฉะเชิงเทรา','Chon Buri':'ชลบุรี','Chai Nat':'ชัยนาท','Chaiyaphum':'ชัยภูมิ','Chumphon':'ชุมพร','Chiang Rai':'เชียงราย','Chiang Mai':'เชียงใหม่','Trang':'ตรัง','Trat':'ตราด','Tak':'ตาก','Nakhon Nayok':'นครนายก','Nakhon Pathom':'นครปฐม','Nakhon Phanom':'นครพนม','Nakhon Ratchasima':'นครราชสีมา','Nakhon Si Thammarat':'นครศรีธรรมราช','Nakhon Sawan':'นครสวรรค์','Nonthaburi':'นนทบุรี','Narathiwat':'นราธิวาส','Nan':'น่าน','Bueng Kan':'บึงกาฬ','Buri Ram':'บุรีรัมย์','Pathum Thani':'ปทุมธานี','Prachuap Khiri Khan':'ประจวบคีรีขันธ์','Prachin Buri':'ปราจีนบุรี','Pattani':'ปัตตานี','Phra Nakhon Si Ayutthaya':'พระนครศรีอยุธยา','Phayao':'พะเยา','Phang Nga':'พังงา','Phatthalung':'พัทลุง','Phichit':'พิจิตร','Phitsanulok':'พิษณุโลก','Phetchaburi':'เพชรบุรี','Phetchabun':'เพชรบูรณ์','Phrae':'แพร่','Phuket':'ภูเก็ต','Maha Sarakham':'มหาสารคาม','Mukdahan':'มุกดาหาร','Mae Hong Son':'แม่ฮ่องสอน','Yasothon':'ยโสธร','Yala':'ยะลา','Roi Et':'ร้อยเอ็ด','Ranong':'ระนอง','Rayong':'ระยอง','Ratchaburi':'ราชบุรี','Lop Buri':'ลพบุรี','Lampang':'ลำปาง','Lamphun':'ลำพูน','Loei':'เลย','Si Sa Ket':'ศรีสะเกษ','Sakon Nakhon':'สกลนคร','Songkhla':'สงขลา','Satun':'สตูล','Samut Prakan':'สมุทรปราการ','Samut Songkhram':'สมุทรสงคราม','Samut Sakhon':'สมุทรสาคร','Sa Kaeo':'สระแก้ว','Saraburi':'สระบุรี','Sing Buri':'สิงห์บุรี','Sukhothai':'สุโขทัย','Suphan Buri':'สุพรรณบุรี','Surat Thani':'สุราษฎร์ธานี','Surin':'สุรินทร์','Nong Khai':'หนองคาย','Nong Bua Lam Phu':'หนองบัวลำภู','Ang Thong':'อ่างทอง','Amnat Charoen':'อำนาจเจริญ','Udon Thani':'อุดรธานี','Uttaradit':'อุตรดิตถ์','Uthai Thani':'อุทัยธานี','Ubon Ratchathani':'อุบลราชธานี'};
+
   var data = decode(location.hash), lang = pickLang();
   function render() {
     var t = T[lang], app = document.getElementById('app');
     document.documentElement.lang = lang === 'zh' ? 'zh-Hans' : lang;
     document.title = t.title + ' · Thailand';
+    var scroll = app.querySelector('.langs'), keepX = scroll ? scroll.scrollLeft : 0;
     app.textContent = '';
-    app.appendChild(el('nav', { class: 'langs', 'aria-label': 'Language' }, ORDER.map(function (c) {
+    var nav = el('nav', { class: 'langs', 'aria-label': 'Language' }, ORDER.map(function (c) {
       var b = el('button', { type: 'button', lang: c, 'aria-pressed': String(c === lang), text: T[c].name });
       b.addEventListener('click', function () { lang = c; try { localStorage.setItem('driver-card-p-lang', c); } catch (e) {} render(); });
       return b;
-    })));
+    }));
+    app.appendChild(nav);
     app.appendChild(el('h1', { text: t.title }));
     app.appendChild(el('p', { class: 'lead', text: t.lead }));
     if (!data) app.appendChild(el('p', { class: 'bad', text: t.bad }));
     else {
+      if (data.plate || data.province) {
+        var th = PROV_TH[data.province] || data.province, reg = data.plate || '—';
+        app.appendChild(el('figure', { class: 'plate', role: 'group', 'aria-label': t.plate }, [
+          el('div', { class: 'plate-face' }, [
+            el('b', { class: 'plate-no' + (reg.length > 8 ? ' long' : ''), lang: 'th' }, reg.split(/([\u0E00-\u0E7F]+)/).map(function (part, i) {
+              return part ? (i % 2 ? el('span', { class: 'th', text: part }) : document.createTextNode(part)) : null;
+            })),
+            th ? el('span', { class: 'plate-prov', lang: /[\u0E00-\u0E7F]/.test(th) ? 'th' : 'en', text: th }) : null]),
+          el('figcaption', { text: t.plate + (data.province && th !== data.province ? ': ' + data.province : '') })]));
+      }
       var rows = [];
-      if (data.name) rows.push(el('div', { class: 'row' }, [el('span', { class: 'k', text: t.driver }), el('span', { class: 'v', text: data.name })]));
-      if (data.licence) rows.push(el('div', { class: 'row' }, [el('span', { class: 'k', text: t.licence }), el('span', { class: 'v', text: data.licence })]));
-      if (data.plate || data.province) rows.push(el('div', { class: 'row' }, [el('span', { class: 'k', text: t.plate }),
-        el('span', { class: 'plate' }, [el('b', { text: data.plate || '—' }), data.province ? el('span', { text: data.province }) : null])]));
-      app.appendChild(el('section', { class: 'card' }, rows));
+      if (data.name) rows.push(el('div', null, [el('dt', { text: t.driver }), el('dd', { text: data.name })]));
+      if (data.licence) rows.push(el('div', null, [el('dt', { text: t.licence }), el('dd', { text: data.licence })]));
+      if (rows.length) app.appendChild(el('dl', { class: 'facts' }, rows));
     }
     app.appendChild(el('h2', { text: t.calls }));
     app.appendChild(el('ul', { class: 'calls' }, CALLS.map(function (n) {
-      return el('li', null, [el('a', { href: 'tel:' + n }, [el('span', { text: t['h' + n] }), el('span', { class: 'num', text: n })])]);
+      return el('li', null, [el('a', { href: 'tel:' + n }, [el('span', { class: 'num', text: n }), el('span', { text: t['h' + n] })])]);
     })));
     app.appendChild(el('p', { class: 'tip', text: t.tip }));
     app.appendChild(el('p', { class: 'note' }, [document.createTextNode(t.note + ' '), el('a', { href: '/privacy#' + (lang === 'th' ? 'th' : 'en'), text: lang === 'th' ? 'นโยบายความเป็นส่วนตัว' : 'Privacy' })]));
+    nav.scrollLeft = keepX;
+    var on = nav.querySelector('[aria-pressed="true"]');
+    if (on && (on.offsetLeft < nav.scrollLeft || on.offsetLeft + on.offsetWidth > nav.scrollLeft + nav.clientWidth)) nav.scrollLeft = on.offsetLeft - 16;
   }
   render();
   window.addEventListener('hashchange', function () { data = decode(location.hash); render(); });
