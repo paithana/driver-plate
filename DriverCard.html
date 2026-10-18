@@ -254,6 +254,11 @@ input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; ov
 .ad-slot { margin-top: var(--s7); padding: var(--s3) var(--s4) var(--s4); border: 1px dashed var(--line); border-radius: var(--r-md); display: grid; gap: var(--s2); }
 .ad-label { font-size: var(--t-xs); color: var(--muted); }
 .ad-slot:has(ins[data-ad-status="unfilled"]) { display: none; }
+.iab { margin-bottom: var(--s5); padding: var(--s3) var(--s4); border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--line)); border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--warn) 8%, var(--surface)); display: grid; gap: var(--s2); max-width: 760px; }
+.iab p { margin: 0; font-size: var(--t-sm); line-height: 1.6; }
+.iab b { color: var(--warn); }
+.iab a.btn { text-decoration: none; }
 .ad-slot + .foot { margin-top: var(--s6); }
 .foot b { color: var(--accent); }
 .foot-meta { display: grid; gap: var(--s1); justify-items: end; text-align: right; }
@@ -3689,6 +3694,42 @@ var qrcode = function() {
   var isStandalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
   var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
+  /* In-app browsers (LINE, Facebook, …) often block the JPEG download, printing and install, so suggest a real browser. */
+  var IN_APPS = [['LINE', /\bLine\//i], ['Facebook', /FBAN|FBAV|FB_IAB|FBIOS/], ['Messenger', /MessengerForiOS|Orca-Android/i], ['Instagram', /Instagram/],
+    ['TikTok', /musical_ly|BytedanceWebview|TikTok/i], ['X', /Twitter/i], ['WeChat', /MicroMessenger/i]];
+  var inApp = null;
+  for (var ia = 0; ia < IN_APPS.length && !inApp; ia++) if (IN_APPS[ia][1].test(navigator.userAgent)) inApp = IN_APPS[ia][0];
+  if (!inApp && /Android/.test(navigator.userAgent) && /; wv\)/.test(navigator.userAgent)) inApp = 'app';
+  if (isStandalone) inApp = null;
+  var isAndroid = /Android/i.test(navigator.userAgent);
+  function externalUrl() {
+    if (inApp === 'LINE') return location.pathname + (location.search ? location.search + '&' : '?') + 'openExternalBrowser=1';   /* LINE's documented switch */
+    if (isAndroid) return 'intent://' + location.host + location.pathname + location.search + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='
+      + encodeURIComponent(location.href) + ';end';
+    return null;
+  }
+
+  function InAppNotice() {
+    var _d = useState(function () { try { return sessionStorage.getItem('iab-dismissed') === '1'; } catch (e) { return false; } });
+    var _c = useState(false); var copied = _c[0], setCopied = _c[1];
+    if (!inApp || _d[0]) return null;
+    var href = externalUrl();
+    function copy() {
+      var url = location.origin + location.pathname;
+      (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(function () { setCopied(true); }, function () { window.prompt('คัดลอกลิงก์นี้', url); });
+    }
+    function dismiss() { try { sessionStorage.setItem('iab-dismissed', '1'); } catch (e) {} _d[1](true); }
+    return h('aside', { className: 'iab', role: 'note' },
+      h('p', null, h('b', null, inApp === 'app' ? 'เปิดอยู่ในเบราว์เซอร์ของแอป' : ['เปิดอยู่ในเบราว์เซอร์ของ ', h('span', { key: 'n', className: 'latin' }, inApp)]), ' — บันทึกรูป JPEG พิมพ์ และติดตั้งแอปอาจใช้ไม่ได้ เปิดใน ',
+        h('span', { className: 'latin' }, isIOS ? 'Safari' : 'Chrome'), ' เพื่อใช้งานได้ครบ'),
+      href ? null : h('p', { className: 'hint' }, isIOS ? 'กดปุ่ม ⋯ หรือปุ่มแชร์ที่มุมจอ แล้วเลือก “เปิดใน Safari” หรือคัดลอกลิงก์ไปวางใน Safari'
+        : 'กดปุ่ม ⋮ ที่มุมจอ แล้วเลือก “เปิดในเบราว์เซอร์” หรือคัดลอกลิงก์ไปวางในเบราว์เซอร์'),
+      h('div', { className: 'photo-actions' },
+        href ? h('a', { className: 'btn small primary', href: href }, 'เปิดใน', h('span', { className: 'latin' }, isIOS ? 'Safari' : 'Chrome')) : null,
+        h('button', { type: 'button', className: 'btn small', onClick: copy }, copied ? 'คัดลอกลิงก์แล้ว' : 'คัดลอกลิงก์'),
+        h('button', { type: 'button', className: 'btn small quiet', onClick: dismiss }, 'ใช้ต่อที่นี่')));
+  }
+
   function AppPanel(props) {
     var _i = useState(!!installEvent); var canInstall = _i[0], setCanInstall = _i[1];
     var _p = useState({ have: 0, busy: false, done: 0, err: false }); var pack = _p[0], setPack = _p[1];
@@ -3987,6 +4028,7 @@ var qrcode = function() {
         h('div', { className: 'stickybar-in' },
           h('span', { className: 'sb-title' }, 'ป้ายข้อมูลผู้ขับรถ'),
           h('span', { className: 'sb-plate' }, (st.regNo.trim() || '— —') + ' · ' + (st.province.trim() || 'จังหวัด')))),
+      h(InAppNotice),
       h('header', { className: 'masthead', ref: mastRef },
         h('div', null,
           h('p', { className: 'eyebrow' }, h('span', { className: 'latin' }, 'Driver information card'), h('span', { className: 'dot', 'aria-hidden': 'true' }), h('span', null, 'ทำป้ายข้อมูลผู้ขับรถ')),
