@@ -309,6 +309,17 @@ input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; ov
 @media (max-width: 380px) { .row { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: no-preference) { .btn { transition: background-color .15s, color .15s; } }
 @media (prefers-reduced-motion: reduce) { fieldset, input, textarea, select, .stickybar, .right { transition: none; } }
+/* Minimised preview: only the card, floating in the corner; tap it to bring the full preview back. */
+.btn.min { flex: none; width: 44px; padding: 0; font-size: var(--t-lg); }
+.card-wrap.mini { position: fixed; z-index: 30; top: auto; left: auto; right: max(var(--s4), env(safe-area-inset-right, 0px));
+  bottom: calc(var(--s4) + env(safe-area-inset-bottom, 0px)); width: 176px; padding: var(--s1); border-radius: var(--r-md); box-shadow: var(--dock-shadow); }
+.card-wrap.mini .card-view { position: relative; cursor: zoom-in; }
+.card-wrap.mini .card-view::after { content: "⤢"; position: absolute; top: 4px; right: 4px; display: grid; place-items: center; width: 24px; height: 24px;
+  border-radius: 50%; background: var(--accent); color: var(--accent-fg); font-size: 14px; line-height: 1; }
+.card-wrap.mini canvas { width: 100%; max-height: none; box-shadow: none; }
+.card-wrap.mini .caption, .card-wrap.mini .actions, .card-wrap.mini .status { display: none; }
+@media (max-width: 860px) { .card-wrap.mini { width: 132px; } }
+.page:has(.card-wrap.mini) { padding-bottom: 150px; }
 @media print {
   @page { size: A4 landscape; margin: 8mm; }
   body { background: #fff; }
@@ -3782,6 +3793,9 @@ var qrcode = function() {
     var _busy = useState(false); var busy = _busy[0], setBusy = _busy[1];
     var _confirm = useState(false); var confirmReset = _confirm[0], setConfirmReset = _confirm[1];
     var _exp = useState(false); var expanded = _exp[0], setExpanded = _exp[1];
+    var _min = useState(function () { try { return localStorage.getItem('preview-min') === '1'; } catch (e) { return false; } });
+    var mini = _min[0];
+    function setMini(v) { _min[1](v); setExpanded(false); try { localStorage.setItem('preview-min', v ? '1' : '0'); } catch (e) {} }
     var _pw = useState(1240); var previewW = _pw[0], setPreviewW = _pw[1];
     var _ft = useState(0); var fontTick = _ft[0], setFontTick = _ft[1];
     var _bg = useState(null); var bgCut = _bg[0], setBgCut = _bg[1];       /* { canvas, original } after a removal */
@@ -4045,8 +4059,10 @@ var qrcode = function() {
           h('span', { className: 'plate-prov' }, st.province.trim() || 'จังหวัด'))),
       h('div', { className: 'layout' },
         h('section', { className: 'right', 'aria-label': 'ตัวอย่างป้าย' },
-          h('div', { className: 'card-wrap' + (expanded ? ' expanded' : '') + (typing ? ' typing' : '') },
-            h('div', { className: 'card-view', onClick: function () { setExpanded(!expanded); } },
+          h('div', { className: 'card-wrap' + (mini ? ' mini' : expanded ? ' expanded' : '') + (typing ? ' typing' : '') },
+            h('div', mini ? { className: 'card-view', role: 'button', tabIndex: 0, 'aria-label': 'ขยายตัวอย่างป้าย', title: 'ขยายตัวอย่าง',
+                onClick: function () { setMini(false); }, onKeyDown: function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMini(false); } } }
+              : { className: 'card-view', onClick: function () { setExpanded(!expanded); } },
               h('canvas', { ref: canvasRef, 'aria-label': 'ตัวอย่างป้ายข้อมูลผู้ขับรถ' }),
               h('div', { className: 'caption' },
                 h('span', null, h('span', { className: 'only-desk' }, 'ตัวอย่าง — อัปเดตทันทีที่พิมพ์'), h('span', { className: 'only-phone' }, expanded ? 'แตะเพื่อย่อ' : 'แตะเพื่อขยาย')),
@@ -4054,7 +4070,8 @@ var qrcode = function() {
             h('div', { className: 'actions' },
               h('button', { type: 'button', className: 'btn primary', onClick: onSave, disabled: busy }, busy ? 'กำลังสร้าง…' : 'บันทึก JPEG'),
               inViewer ? null : h('button', { type: 'button', className: 'btn', onClick: onPrint, disabled: busy }, 'พิมพ์'),
-              h('button', { type: 'button', className: 'btn quiet' + (confirmReset ? ' confirm' : ''), onClick: onReset }, confirmReset ? h(React.Fragment, null, h('span', { className: 'only-desk' }, 'กดอีกครั้งเพื่อล้าง'), h('span', { className: 'only-phone' }, 'ยืนยันล้าง')) : 'ล้างข้อมูล')),
+              h('button', { type: 'button', className: 'btn quiet' + (confirmReset ? ' confirm' : ''), onClick: onReset }, confirmReset ? h(React.Fragment, null, h('span', { className: 'only-desk' }, 'กดอีกครั้งเพื่อล้าง'), h('span', { className: 'only-phone' }, 'ยืนยันล้าง')) : 'ล้างข้อมูล'),
+              h('button', { type: 'button', className: 'btn quiet min', onClick: function () { setMini(true); }, 'aria-label': 'ย่อตัวอย่างเป็นหน้าต่างลอย', title: 'ย่อตัวอย่าง' }, '–')),
             h('p', { className: 'status ' + msg.tone + (msg.text ? '' : ' empty'), role: 'status' }, msg.text)),
           result ? h('figure', { className: 'result' },
             h('img', { src: result.url, alt: 'ไฟล์ JPEG ป้ายข้อมูลผู้ขับรถ' }),
